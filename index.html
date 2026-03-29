@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>인증 타임스탬프 카메라</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+KR:wght@400;700&display=swap');
+  @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+KR:wght@400;700;900&display=swap');
 
   * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -24,9 +24,10 @@
     user-select: none;
   }
 
+  /* ===== HEADER ===== */
   .header {
     background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    padding: 8px 16px;
+    padding: 6px 14px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -37,19 +38,18 @@
 
   .header h1 {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 800;
     color: #e94560;
-    letter-spacing: -0.5px;
   }
 
   .sync-badge {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    padding: 4px 10px;
+    font-size: 10px;
+    padding: 3px 8px;
     border-radius: 20px;
     background: rgba(255,255,255,0.05);
     border: 1px solid rgba(255,255,255,0.1);
@@ -57,136 +57,125 @@
   }
 
   .sync-dot {
-    width: 8px;
-    height: 8px;
+    width: 7px; height: 7px;
     border-radius: 50%;
     background: #666;
     flex-shrink: 0;
-    transition: background 0.3s;
   }
-
   .sync-dot.synced { background: #00e676; box-shadow: 0 0 6px #00e676; }
   .sync-dot.syncing { background: #ffc107; animation: pulse 1s infinite; }
-  .sync-dot.failed { background: #e94560; }
   .sync-dot.local { background: #ffc107; }
 
-  @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.4; }
-  }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
 
+  /* ===== CAMERA ===== */
   .camera-container {
     flex: 1;
     position: relative;
     overflow: hidden;
     background: #000;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   #videoElement {
-    width: 100%;
-    height: 100%;
+    width: 100%; height: 100%;
     object-fit: cover;
+    display: block;
   }
 
   canvas { display: none; }
 
   .timestamp-overlay {
     position: absolute;
-    top: 12px;
-    left: 12px;
-    right: 12px;
+    top: 10px; left: 10px;
     pointer-events: none;
     z-index: 5;
   }
 
   .ts-main {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 32px;
+    font-size: 30px;
     font-weight: 800;
     color: #fff;
-    text-shadow: 0 0 10px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.9), 0 0 30px rgba(0,0,0,0.6);
-    letter-spacing: 1px;
+    text-shadow: 0 0 12px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.9);
     line-height: 1;
   }
 
   .ts-date {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 400;
+    font-size: 13px;
     color: rgba(255,255,255,0.95);
-    text-shadow: 0 0 8px rgba(0,0,0,0.95), 0 1px 3px rgba(0,0,0,0.9);
-    margin-top: 5px;
+    text-shadow: 0 0 8px rgba(0,0,0,0.95);
+    margin-top: 4px;
   }
 
   .ts-source {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: #00e676;
+    font-size: 9px;
     text-shadow: 0 0 8px rgba(0,0,0,0.95);
-    margin-top: 3px;
+    margin-top: 2px;
   }
-
-  .ts-source.not-synced { color: #ffc107; }
+  .ts-source.synced { color: #00e676; }
+  .ts-source.local { color: #ffc107; }
 
   .rec-indicator {
     position: absolute;
-    top: 16px;
-    right: 16px;
+    top: 14px; right: 14px;
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     z-index: 5;
     opacity: 0;
     transition: opacity 0.3s;
   }
-
   .rec-indicator.active { opacity: 1; }
 
   .rec-dot {
-    width: 12px;
-    height: 12px;
+    width: 10px; height: 10px;
     border-radius: 50%;
     background: #e94560;
     animation: recBlink 1s infinite;
   }
-
-  @keyframes recBlink {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.3; }
-  }
+  @keyframes recBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
   .rec-text {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    font-weight: 700;
+    font-size: 13px; font-weight: 700;
     color: #e94560;
     text-shadow: 0 0 8px rgba(0,0,0,0.8);
   }
 
   .rec-time {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 12px;
+    font-size: 11px;
     color: rgba(255,255,255,0.8);
     text-shadow: 0 0 8px rgba(0,0,0,0.8);
   }
 
+  .offset-info {
+    position: absolute;
+    bottom: 8px; left: 8px; right: 8px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 8px;
+    color: rgba(255,255,255,0.3);
+    text-shadow: 0 0 6px rgba(0,0,0,0.95);
+    z-index: 5;
+    pointer-events: none;
+  }
+
+  /* ===== CONTROLS ===== */
   .controls {
     background: linear-gradient(0deg, #0a0a0a 0%, #1a1a2e 100%);
-    padding: 16px 16px 24px;
+    padding: 12px 16px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 28px;
+    gap: 24px;
     flex-shrink: 0;
     z-index: 10;
   }
 
   .btn-record {
-    width: 72px;
-    height: 72px;
+    width: 68px; height: 68px;
     border-radius: 50%;
     border: 4px solid #fff;
     background: transparent;
@@ -194,43 +183,55 @@
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: all 0.3s;
     -webkit-tap-highlight-color: transparent;
   }
 
   .btn-record .inner {
-    width: 56px;
-    height: 56px;
+    width: 52px; height: 52px;
     border-radius: 50%;
     background: #e94560;
     transition: all 0.3s;
   }
 
   .btn-record.recording .inner {
-    width: 28px;
-    height: 28px;
-    border-radius: 8px;
+    width: 26px; height: 26px;
+    border-radius: 6px;
   }
 
-  .btn-secondary {
-    width: 50px;
-    height: 50px;
+  .btn-side {
+    width: 46px; height: 46px;
     border-radius: 50%;
-    border: 2px solid rgba(255,255,255,0.3);
+    border: 2px solid rgba(255,255,255,0.25);
     background: rgba(255,255,255,0.05);
     color: #fff;
-    font-size: 22px;
+    font-size: 20px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
-    transition: all 0.2s;
+    position: relative;
   }
 
-  .btn-secondary:active { background: rgba(255,255,255,0.15); }
-  .btn-secondary.has-video { border-color: #00e676; color: #00e676; }
+  .btn-side:active { background: rgba(255,255,255,0.15); }
+  .btn-side.ready { border-color: #00e676; color: #00e676; }
 
+  .btn-side .badge {
+    position: absolute;
+    top: -4px; right: -4px;
+    width: 16px; height: 16px;
+    border-radius: 50%;
+    background: #e94560;
+    font-size: 9px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none;
+  }
+  .btn-side.ready .badge { display: flex; }
+
+  /* ===== INIT SCREEN ===== */
   .init-screen {
     position: absolute;
     inset: 0;
@@ -240,89 +241,145 @@
     align-items: center;
     justify-content: center;
     z-index: 20;
-    gap: 14px;
-    padding: 32px;
+    gap: 12px;
+    padding: 28px;
     text-align: center;
   }
 
   .init-screen h2 {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 20px;
+    font-size: 18px;
     color: #e94560;
     font-weight: 800;
   }
 
   .init-screen p {
-    font-size: 14px;
-    color: rgba(255,255,255,0.6);
+    font-size: 13px;
+    color: rgba(255,255,255,0.55);
     line-height: 1.6;
-    max-width: 300px;
-  }
-
-  .init-screen .warn {
-    font-size: 12px;
-    color: #ffc107;
-    background: rgba(255,193,7,0.1);
-    border: 1px solid rgba(255,193,7,0.2);
-    border-radius: 8px;
-    padding: 10px 16px;
-    max-width: 300px;
-    line-height: 1.5;
   }
 
   .btn-start {
     margin-top: 4px;
-    padding: 14px 40px;
+    padding: 13px 36px;
     background: #e94560;
     color: #fff;
     border: none;
     border-radius: 12px;
     font-family: 'Noto Sans KR', sans-serif;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 700;
     cursor: pointer;
-    transition: all 0.2s;
   }
+  .btn-start:active { transform: scale(0.96); background: #c81e45; }
 
-  .btn-start:active {
-    transform: scale(0.96);
-    background: #c81e45;
-  }
-
-  .offset-info {
-    position: absolute;
-    bottom: 12px;
-    left: 12px;
-    right: 12px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: rgba(255,255,255,0.35);
-    text-shadow: 0 0 6px rgba(0,0,0,0.95);
-    z-index: 5;
-    pointer-events: none;
-  }
-
+  /* ===== TOAST ===== */
   .toast {
     position: absolute;
-    bottom: 20%;
+    bottom: 18%;
     left: 50%;
     transform: translateX(-50%);
-    font-family: 'JetBrains Mono', monospace;
+    font-family: 'Noto Sans KR', sans-serif;
     font-size: 13px;
     color: #fff;
-    background: rgba(0,0,0,0.75);
-    padding: 10px 20px;
+    background: rgba(0,0,0,0.8);
+    padding: 10px 18px;
     border-radius: 10px;
     z-index: 30;
     opacity: 0;
-    transition: opacity 0.3s;
+    transition: opacity 0.25s;
     pointer-events: none;
     text-align: center;
-    max-width: 80%;
+    max-width: 85%;
     white-space: pre-line;
+    backdrop-filter: blur(4px);
+  }
+  .toast.show { opacity: 1; }
+
+  /* ===== SAVE MODAL ===== */
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.85);
+    z-index: 50;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(6px);
+  }
+  .modal-bg.show { display: flex; }
+
+  .modal {
+    background: #1a1a2e;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 20px;
+    width: 90%;
+    max-width: 340px;
   }
 
-  .toast.show { opacity: 1; }
+  .modal h3 {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 15px;
+    color: #00e676;
+    margin-bottom: 12px;
+    text-align: center;
+  }
+
+  .modal-preview {
+    width: 100%;
+    border-radius: 8px;
+    background: #000;
+    margin-bottom: 14px;
+    max-height: 180px;
+    object-fit: contain;
+  }
+
+  .modal-info {
+    font-size: 11px;
+    color: rgba(255,255,255,0.5);
+    text-align: center;
+    margin-bottom: 14px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+
+  .modal-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .modal-btn {
+    padding: 13px;
+    border: none;
+    border-radius: 10px;
+    font-family: 'Noto Sans KR', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .modal-btn.primary {
+    background: #00e676;
+    color: #000;
+  }
+  .modal-btn.secondary {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  .modal-btn.close {
+    background: transparent;
+    color: rgba(255,255,255,0.4);
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .modal-btn:active { opacity: 0.7; }
 </style>
 </head>
 <body>
@@ -331,7 +388,7 @@
   <h1>🔒 TIMESTAMP CAM</h1>
   <div class="sync-badge" id="syncBadge">
     <div class="sync-dot" id="syncDot"></div>
-    <span id="syncStatus">대기중</span>
+    <span id="syncStatus">대기</span>
   </div>
 </div>
 
@@ -356,32 +413,42 @@
 
   <div class="init-screen" id="initScreen">
     <h2>🔒 인증 타임스탬프 카메라</h2>
-    <p>NTP 서버 시간 기반으로<br>조작 불가능한 타임스탬프를<br>영상에 실시간 오버레이합니다</p>
-    <div class="warn">⚠️ 이 파일을 다운로드 후<br>크롬 또는 삼성인터넷에서 열어주세요<br>Claude 앱 내부에서는 작동 안 됩니다</div>
+    <p>NTP 서버 시간 기반<br>조작 불가능한 타임스탬프<br>영상 오버레이 녹화</p>
+    <p style="font-size:11px; color:rgba(255,255,255,0.3)">폰 시간을 바꿔도 서버 시간 표시</p>
     <button class="btn-start" id="btnStart">카메라 시작</button>
   </div>
 </div>
 
 <div class="controls">
-  <button class="btn-secondary" id="btnFlip" title="카메라 전환">🔄</button>
+  <button class="btn-side" id="btnFlip">🔄</button>
   <button class="btn-record" id="btnRecord"><div class="inner"></div></button>
-  <button class="btn-secondary" id="btnDownload" title="다운로드">💾</button>
+  <button class="btn-side" id="btnSave">💾<span class="badge">1</span></button>
+</div>
+
+<!-- Save Modal -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <h3>✅ 녹화 완료</h3>
+    <video id="previewVideo" class="modal-preview" controls playsinline></video>
+    <div class="modal-info" id="modalInfo">--</div>
+    <div class="modal-btns">
+      <button class="modal-btn primary" id="btnShare">📤 저장 / 공유</button>
+      <button class="modal-btn secondary" id="btnDirect">📥 직접 다운로드</button>
+      <button class="modal-btn close" id="btnModalClose">닫기</button>
+    </div>
+  </div>
 </div>
 
 <script>
 (function() {
-  var ntpOffset = 0;
-  var isSynced = false;
-  var stream = null;
-  var mediaRecorder = null;
-  var recordedChunks = [];
-  var isRecording = false;
-  var recordStart = 0;
-  var recordTimer = null;
-  var lastVideoUrl = null;
-  var facingMode = 'environment';
-  var cameraReady = false;
+  // ===== STATE =====
+  var ntpOffset = 0, isSynced = false;
+  var stream = null, mediaRecorder = null, recordedChunks = [];
+  var isRecording = false, recordStart = 0, recordTimer = null;
+  var lastBlob = null, lastFileName = '';
+  var facingMode = 'environment', cameraReady = false;
 
+  // ===== DOM =====
   var video = document.getElementById('videoElement');
   var canvas = document.getElementById('recordCanvas');
   var ctx = canvas.getContext('2d');
@@ -399,97 +466,90 @@
   var btnStart = document.getElementById('btnStart');
   var btnRecord = document.getElementById('btnRecord');
   var btnFlip = document.getElementById('btnFlip');
-  var btnDownload = document.getElementById('btnDownload');
+  var btnSave = document.getElementById('btnSave');
   var initScreen = document.getElementById('initScreen');
+  var modalBg = document.getElementById('modalBg');
+  var previewVideo = document.getElementById('previewVideo');
+  var modalInfo = document.getElementById('modalInfo');
+  var btnShare = document.getElementById('btnShare');
+  var btnDirect = document.getElementById('btnDirect');
+  var btnModalClose = document.getElementById('btnModalClose');
 
+  // ===== UTILS =====
+  var toastTimer = null;
   function showToast(msg, dur) {
+    clearTimeout(toastTimer);
     toastEl.textContent = msg;
     toastEl.classList.add('show');
-    setTimeout(function() { toastEl.classList.remove('show'); }, dur || 2000);
+    toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, dur || 2000);
+  }
+
+  function pad2(n) { return String(n).padStart(2, '0'); }
+  function getNow() { return new Date(Date.now() + ntpOffset); }
+  function formatTime(d) { return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
+  function formatMs(d) { return '.' + String(d.getMilliseconds()).padStart(3, '0').slice(0, 2); }
+  function formatDate(d) {
+    var days = ['일','월','화','수','목','금','토'];
+    return d.getFullYear() + '.' + pad2(d.getMonth()+1) + '.' + pad2(d.getDate()) + ' (' + days[d.getDay()] + ')';
+  }
+  function formatFileSize(bytes) {
+    if (bytes < 1024) return bytes + ' B';
+    if (bytes < 1048576) return (bytes / 1024).toFixed(1) + ' KB';
+    return (bytes / 1048576).toFixed(1) + ' MB';
   }
 
   // ===== NTP SYNC =====
   async function syncTime() {
     syncDot.className = 'sync-dot syncing';
-    syncStatusEl.textContent = '동기화중..';
+    syncStatusEl.textContent = '동기화중';
 
     var apis = [
-      {
-        url: 'https://worldtimeapi.org/api/timezone/Asia/Seoul',
-        parse: function(d) { return new Date(d.datetime).getTime(); }
-      },
-      {
-        url: 'https://worldtimeapi.org/api/ip',
-        parse: function(d) { return new Date(d.datetime).getTime(); }
-      },
-      {
-        url: 'https://timeapi.io/api/time/current/zone?timeZone=Asia/Seoul',
+      { url: 'https://worldtimeapi.org/api/timezone/Asia/Seoul',
+        parse: function(d) { return new Date(d.datetime).getTime(); } },
+      { url: 'https://worldtimeapi.org/api/ip',
+        parse: function(d) { return new Date(d.datetime).getTime(); } },
+      { url: 'https://timeapi.io/api/time/current/zone?timeZone=Asia/Seoul',
         parse: function(d) {
-          return new Date(
-            d.year + '-' + String(d.month).padStart(2,'0') + '-' +
-            String(d.day).padStart(2,'0') + 'T' +
-            String(d.hour).padStart(2,'0') + ':' +
-            String(d.minute).padStart(2,'0') + ':' +
-            String(d.seconds).padStart(2,'0') + '.000+09:00'
-          ).getTime();
-        }
-      }
+          return new Date(d.year+'-'+pad2(d.month)+'-'+pad2(d.day)+'T'+
+            pad2(d.hour)+':'+pad2(d.minute)+':'+pad2(d.seconds)+'.000+09:00').getTime();
+        } }
     ];
 
     for (var i = 0; i < apis.length; i++) {
       try {
         var t1 = Date.now();
-        var controller = new AbortController();
-        var tid = setTimeout(function() { controller.abort(); }, 5000);
-        var resp = await fetch(apis[i].url, { signal: controller.signal });
+        var ctrl = new AbortController();
+        var tid = setTimeout(function() { ctrl.abort(); }, 5000);
+        var resp = await fetch(apis[i].url, { signal: ctrl.signal });
         clearTimeout(tid);
         var t2 = Date.now();
         var data = await resp.json();
-        var serverTime = apis[i].parse(data);
-
-        if (isNaN(serverTime)) continue;
-
-        var latency = (t2 - t1) / 2;
-        ntpOffset = serverTime - t1 - latency;
+        var st = apis[i].parse(data);
+        if (isNaN(st)) continue;
+        ntpOffset = st - t1 - (t2-t1)/2;
         isSynced = true;
-
         syncDot.className = 'sync-dot synced';
-        syncStatusEl.textContent = 'NTP동기화';
+        syncStatusEl.textContent = 'NTP';
         tsSource.textContent = '🔒 NTP 서버 시간 (조작불가)';
-        tsSource.className = 'ts-source';
-        offsetInfo.textContent = 'offset: ' + (ntpOffset > 0 ? '+' : '') + Math.round(ntpOffset) + 'ms | ' + apis[i].url.split('/')[2];
-        showToast('✅ 서버 시간 동기화 완료', 1500);
+        tsSource.className = 'ts-source synced';
+        offsetInfo.textContent = 'offset ' + (ntpOffset>0?'+':'') + Math.round(ntpOffset) + 'ms | ' + apis[i].url.split('/')[2];
         return;
-      } catch(e) {
-        console.warn('Sync failed:', apis[i].url, e.message);
-      }
+      } catch(e) {}
     }
-
-    // Fallback to local
-    isSynced = false;
-    ntpOffset = 0;
+    isSynced = false; ntpOffset = 0;
     syncDot.className = 'sync-dot local';
-    syncStatusEl.textContent = '로컬시간';
+    syncStatusEl.textContent = '로컬';
     tsSource.textContent = '⚠ 로컬 시간 (자동시간 ON 권장)';
-    tsSource.className = 'ts-source not-synced';
-    offsetInfo.textContent = '서버 연결 불가 → 로컬 시간 사용중';
-    showToast('서버 연결 실패\n로컬 시간으로 작동합니다', 2500);
+    tsSource.className = 'ts-source local';
+    offsetInfo.textContent = '서버 미연결 → 로컬 시간';
+    showToast('서버 연결 실패\n로컬 시간으로 작동', 2500);
   }
 
   syncBadge.addEventListener('click', function() {
     if (!cameraReady) return;
-    showToast('재동기화 시도중...', 1500);
+    showToast('재동기화...', 1500);
     syncTime();
   });
-
-  function getNow() { return new Date(Date.now() + ntpOffset); }
-  function pad2(n) { return String(n).padStart(2, '0'); }
-  function formatTime(d) { return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
-  function formatMs(d) { return '.' + String(d.getMilliseconds()).padStart(3, '0').slice(0, 2); }
-  function formatDate(d) {
-    var days = ['일', '월', '화', '수', '목', '금', '토'];
-    return d.getFullYear() + '.' + pad2(d.getMonth() + 1) + '.' + pad2(d.getDate()) + ' (' + days[d.getDay()] + ')';
-  }
 
   // ===== CAMERA =====
   async function startCamera() {
@@ -504,106 +564,76 @@
       cameraReady = true;
       initScreen.style.display = 'none';
       tsOverlay.style.display = 'block';
-      video.addEventListener('loadedmetadata', function() {
-        canvas.width = video.videoWidth || 1280;
-        canvas.height = video.videoHeight || 720;
-      });
       startRenderLoop();
     } catch(e) {
-      alert('카메라 접근 실패: ' + e.message + '\n\n이 파일을 다운로드 후\n크롬이나 삼성인터넷 브라우저에서\n직접 열어주세요.');
+      alert('카메라 접근 실패: ' + e.message);
     }
   }
 
   function roundRect(c, x, y, w, h, r) {
     c.beginPath();
-    c.moveTo(x + r, y);
-    c.lineTo(x + w - r, y);
-    c.quadraticCurveTo(x + w, y, x + w, y + r);
-    c.lineTo(x + w, y + h - r);
-    c.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
-    c.lineTo(x + r, y + h);
-    c.quadraticCurveTo(x, y + h, x, y + h - r);
-    c.lineTo(x, y + r);
-    c.quadraticCurveTo(x, y, x + r, y);
-    c.closePath();
+    c.moveTo(x+r,y); c.lineTo(x+w-r,y);
+    c.quadraticCurveTo(x+w,y,x+w,y+r); c.lineTo(x+w,y+h-r);
+    c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h);
+    c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r);
+    c.quadraticCurveTo(x,y,x+r,y); c.closePath();
   }
 
+  var renderRunning = false;
   function startRenderLoop() {
+    if (renderRunning) return;
+    renderRunning = true;
+
     function render() {
-      if (!cameraReady) { requestAnimationFrame(render); return; }
+      if (!cameraReady) { renderRunning = false; return; }
       if (video.readyState >= 2) {
-        var vw = video.videoWidth || 1280;
-        var vh = video.videoHeight || 720;
-        canvas.width = vw;
-        canvas.height = vh;
+        var vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
+        canvas.width = vw; canvas.height = vh;
         ctx.drawImage(video, 0, 0, vw, vh);
 
         var now = getNow();
         var timeStr = formatTime(now) + formatMs(now);
         var dateStr = formatDate(now);
-        var syncLabel = isSynced ? 'NTP SYNCED | TAMPER-PROOF' : 'LOCAL TIME';
-        var lockIcon = isSynced ? '🔒' : '⚠';
-
         var scale = Math.max(vw / 400, 1);
-        var pad = 16 * scale;
-        var boxW = Math.min(vw * 0.78, 360 * scale);
-        var boxH = 78 * scale;
+        var p = 14 * scale;
+        var boxW = Math.min(vw * 0.78, 350 * scale);
+        var boxH = 74 * scale;
 
         ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        roundRect(ctx, pad, pad, boxW, boxH, 8 * scale);
-        ctx.fill();
+        roundRect(ctx, p, p, boxW, boxH, 8*scale); ctx.fill();
 
-        // Accent bar
         ctx.fillStyle = isSynced ? '#00e676' : '#ffc107';
-        roundRect(ctx, pad, pad, 4 * scale, boxH, 2 * scale);
-        ctx.fill();
+        roundRect(ctx, p, p, 4*scale, boxH, 2*scale); ctx.fill();
 
-        var tx = pad + 14 * scale;
+        var tx = p + 12*scale;
+        ctx.font = 'bold ' + Math.round(30*scale) + 'px JetBrains Mono, monospace';
+        ctx.fillStyle = '#fff'; ctx.textBaseline = 'top';
+        ctx.fillText(timeStr, tx, p + 6*scale);
 
-        ctx.font = 'bold ' + Math.round(32 * scale) + 'px JetBrains Mono, monospace';
-        ctx.fillStyle = '#ffffff';
-        ctx.textBaseline = 'top';
-        ctx.fillText(timeStr, tx, pad + 6 * scale);
-
-        ctx.font = Math.round(13 * scale) + 'px JetBrains Mono, monospace';
+        ctx.font = Math.round(12*scale) + 'px JetBrains Mono, monospace';
         ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillText(dateStr, tx, pad + 42 * scale);
+        ctx.fillText(dateStr, tx, p + 40*scale);
 
-        ctx.font = 'bold ' + Math.round(9 * scale) + 'px JetBrains Mono, monospace';
+        ctx.font = 'bold ' + Math.round(9*scale) + 'px JetBrains Mono, monospace';
         ctx.fillStyle = isSynced ? '#00e676' : '#ffc107';
-        ctx.fillText(lockIcon + ' ' + syncLabel, tx, pad + 60 * scale);
+        ctx.fillText(isSynced ? '🔒 NTP SYNCED | TAMPER-PROOF' : '⚠ LOCAL TIME', tx, p + 57*scale);
 
-        // REC badge on canvas
         if (isRecording) {
-          var elapsed = Math.floor((Date.now() - recordStart) / 1000);
-          var mm = pad2(Math.floor(elapsed / 60));
-          var ss = pad2(elapsed % 60);
-          var rw = 100 * scale;
-          var rh = 26 * scale;
-          var rx = vw - pad - rw;
-          var ry = pad;
-
+          var el = Math.floor((Date.now()-recordStart)/1000);
+          var rw = 95*scale, rh = 24*scale;
+          var rx = vw - p - rw, ry = p;
           ctx.fillStyle = 'rgba(233,69,96,0.9)';
-          roundRect(ctx, rx, ry, rw, rh, 5 * scale);
-          ctx.fill();
-
+          roundRect(ctx, rx, ry, rw, rh, 5*scale); ctx.fill();
           ctx.fillStyle = '#fff';
-          ctx.beginPath();
-          ctx.arc(rx + 12 * scale, ry + rh / 2, 5 * scale, 0, Math.PI * 2);
-          ctx.fill();
-
-          ctx.font = 'bold ' + Math.round(13 * scale) + 'px JetBrains Mono, monospace';
-          ctx.fillStyle = '#fff';
-          ctx.textBaseline = 'top';
-          ctx.fillText('REC ' + mm + ':' + ss, rx + 22 * scale, ry + 5 * scale);
+          ctx.beginPath(); ctx.arc(rx+11*scale, ry+rh/2, 4*scale, 0, Math.PI*2); ctx.fill();
+          ctx.font = 'bold ' + Math.round(12*scale) + 'px JetBrains Mono, monospace';
+          ctx.fillText('REC '+pad2(Math.floor(el/60))+':'+pad2(el%60), rx+20*scale, ry+5*scale);
         }
       }
 
-      // HTML overlay update
       var now2 = getNow();
       tsTime.textContent = formatTime(now2) + formatMs(now2);
       tsDate.textContent = formatDate(now2);
-
       requestAnimationFrame(render);
     }
     render();
@@ -613,39 +643,30 @@
   function startRecording() {
     if (!cameraReady) { showToast('카메라를 먼저 시작하세요'); return; }
     recordedChunks = [];
+    var cs = canvas.captureStream(30);
+    if (stream) stream.getAudioTracks().forEach(function(t) { cs.addTrack(t); });
 
-    var canvasStream = canvas.captureStream(30);
-    if (stream) {
-      var at = stream.getAudioTracks();
-      for (var i = 0; i < at.length; i++) canvasStream.addTrack(at[i]);
-    }
-
-    var mimes = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm;codecs=vp8', 'video/webm', 'video/mp4'];
+    var mimes = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm','video/mp4'];
     var opts = {};
     for (var j = 0; j < mimes.length; j++) {
       if (MediaRecorder.isTypeSupported(mimes[j])) { opts = { mimeType: mimes[j] }; break; }
     }
 
-    try {
-      mediaRecorder = new MediaRecorder(canvasStream, opts);
-    } catch(e) {
-      showToast('녹화 실패: ' + e.message, 3000);
-      return;
-    }
+    try { mediaRecorder = new MediaRecorder(cs, opts); }
+    catch(e) { showToast('녹화 실패: ' + e.message, 3000); return; }
 
     mediaRecorder.ondataavailable = function(e) {
       if (e.data && e.data.size > 0) recordedChunks.push(e.data);
     };
     mediaRecorder.onstop = function() {
-      var blob = new Blob(recordedChunks, { type: opts.mimeType || 'video/webm' });
-      if (lastVideoUrl) URL.revokeObjectURL(lastVideoUrl);
-      lastVideoUrl = URL.createObjectURL(blob);
-      btnDownload.classList.add('has-video');
-      showToast('✅ 녹화 완료! 💾으로 저장', 2500);
-    };
-    mediaRecorder.onerror = function(e) {
-      showToast('녹화 오류', 2000);
-      stopRecording();
+      lastBlob = new Blob(recordedChunks, { type: opts.mimeType || 'video/webm' });
+      var now = getNow();
+      var ext = (opts.mimeType && opts.mimeType.indexOf('mp4') > -1) ? 'mp4' : 'webm';
+      lastFileName = 'PROOF_' + now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate()) + '_' +
+        pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds()) + '.' + ext;
+
+      btnSave.classList.add('ready');
+      showSaveModal();
     };
 
     mediaRecorder.start(500);
@@ -656,8 +677,8 @@
     showToast('🔴 녹화 시작', 1000);
 
     recordTimer = setInterval(function() {
-      var el = Math.floor((Date.now() - recordStart) / 1000);
-      recTimeEl.textContent = pad2(Math.floor(el / 60)) + ':' + pad2(el % 60);
+      var el = Math.floor((Date.now()-recordStart)/1000);
+      recTimeEl.textContent = pad2(Math.floor(el/60))+':'+pad2(el%60);
     }, 250);
   }
 
@@ -670,7 +691,81 @@
     recTimeEl.textContent = '00:00';
   }
 
-  // ===== EVENTS =====
+  // ===== SAVE MODAL =====
+  function showSaveModal() {
+    if (!lastBlob) return;
+    var url = URL.createObjectURL(lastBlob);
+    previewVideo.src = url;
+    var dur = Math.floor((Date.now() - recordStart) / 1000);
+    modalInfo.textContent = lastFileName + ' | ' + formatFileSize(lastBlob.size) + ' | ' + pad2(Math.floor(dur/60)) + ':' + pad2(dur%60);
+
+    // Check if share API is available
+    if (navigator.share && navigator.canShare) {
+      btnShare.style.display = 'flex';
+      btnShare.textContent = '📤 갤러리에 저장 / 공유';
+    } else {
+      btnShare.style.display = 'none';
+    }
+
+    modalBg.classList.add('show');
+  }
+
+  // Method 1: navigator.share() — 가장 확실한 모바일 저장 방법
+  btnShare.addEventListener('click', async function() {
+    if (!lastBlob) return;
+    try {
+      var file = new File([lastBlob], lastFileName, { type: lastBlob.type });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({
+          files: [file],
+          title: '인증 타임스탬프 영상',
+          text: lastFileName
+        });
+        showToast('✅ 저장/공유 완료!', 2000);
+        modalBg.classList.remove('show');
+      } else {
+        showToast('이 브라우저에서 파일 공유 불가\n직접 다운로드를 사용하세요', 2500);
+      }
+    } catch(e) {
+      if (e.name !== 'AbortError') {
+        showToast('공유 취소됨', 1500);
+      }
+    }
+  });
+
+  // Method 2: 직접 다운로드 (a.click + fallback to window.open)
+  btnDirect.addEventListener('click', function() {
+    if (!lastBlob) return;
+    var url = URL.createObjectURL(lastBlob);
+
+    // Try a.click first
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = lastFileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+
+    try {
+      a.click();
+      showToast('📥 다운로드 시작\n내 파일 → 다운로드 폴더 확인', 3000);
+    } catch(e) {
+      // Fallback: open in new tab
+      window.open(url, '_blank');
+      showToast('새 탭에서 열림\n길게 눌러서 동영상 저장', 3000);
+    }
+
+    setTimeout(function() {
+      document.body.removeChild(a);
+    }, 1000);
+
+    modalBg.classList.remove('show');
+  });
+
+  btnModalClose.addEventListener('click', function() {
+    modalBg.classList.remove('show');
+  });
+
+  // ===== BUTTON EVENTS =====
   btnStart.addEventListener('click', function() {
     startCamera();
     syncTime();
@@ -684,25 +779,19 @@
   btnFlip.addEventListener('click', function() {
     if (isRecording) { showToast('녹화 중 전환 불가', 1500); return; }
     facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    showToast(facingMode === 'user' ? '📱 전면' : '📸 후면', 1000);
+    showToast(facingMode === 'user' ? '📱 전면' : '📸 후면', 800);
+    cameraReady = false;
+    renderRunning = false;
     startCamera();
   });
 
-  btnDownload.addEventListener('click', function() {
-    if (!lastVideoUrl) { showToast('녹화된 영상 없음', 1500); return; }
-    var now = getNow();
-    var fn = 'PROOF_' + now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate()) + '_' +
-      pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds()) + '.webm';
-    var a = document.createElement('a');
-    a.href = lastVideoUrl;
-    a.download = fn;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    showToast('📥 ' + fn, 2000);
+  btnSave.addEventListener('click', function() {
+    if (lastBlob) showSaveModal();
+    else showToast('녹화된 영상이 없습니다', 1500);
   });
 
-  setInterval(function() { syncTime(); }, 300000);
+  // Re-sync every 5 min
+  setInterval(syncTime, 300000);
 })();
 </script>
 </body>
