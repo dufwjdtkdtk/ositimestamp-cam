@@ -140,58 +140,47 @@
 
 <script>
 // ============================================
-// 1. 인앱 브라우저 감지 (iOS/Android 분기)
+// 1. 인앱 브라우저 감지
 // ============================================
 (function(){
   var ua = navigator.userAgent || '';
-  var isInApp = /KAKAOTALK|Line\/|NAVER|FBAN|FBAV|Instagram/i.test(ua);
-  if(!isInApp) return;
+  var isKakao = /KAKAOTALK/i.test(ua);
+  var isOtherInApp = /Line\/|NAVER|FBAN|FBAV|Instagram/i.test(ua);
+  if(!isKakao && !isOtherInApp) return;
 
   var isIOS = /iPhone|iPad|iPod/i.test(ua);
   var pageUrl = location.href;
   var bs = document.getElementById('blockScr');
   bs.style.display = 'flex';
 
-  if(isIOS){
-    // iOS: 클립보드 복사 → Safari 열기 안내
-    document.getElementById('blockMsg').innerHTML = '카카오톡 브라우저에서는<br>카메라/저장이 제한됩니다<br><br>아래 버튼으로 주소를 복사한 뒤<br><b>Safari</b>에서 붙여넣기 해주세요';
-    document.getElementById('blockBtn').textContent = '📋 주소 복사하기';
-    document.getElementById('blockBtn').onclick = function(){
-      // iOS clipboard
-      if(navigator.clipboard && navigator.clipboard.writeText){
-        navigator.clipboard.writeText(pageUrl).then(function(){
-          document.getElementById('blockBtn').textContent = '✅ 복사 완료! Safari에서 붙여넣기';
-          document.getElementById('blockBtn').classList.add('copied');
-        });
-      } else {
-        // Fallback: textarea 방식
-        var ta = document.createElement('textarea');
-        ta.value = pageUrl;
-        ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        document.execCommand('copy');
-        document.body.removeChild(ta);
-        document.getElementById('blockBtn').textContent = '✅ 복사 완료! Safari에서 붙여넣기';
-        document.getElementById('blockBtn').classList.add('copied');
-      }
-    };
-    document.getElementById('blockExtra').innerHTML = '<div class="url-box" style="margin-top:8px">' + pageUrl + '</div>';
-
-  } else {
-    // Android: Chrome intent 또는 수동 안내
+  if(isKakao){
+    // 카카오톡 전용 스킴: iOS→Safari, Android→Chrome 자동
     document.getElementById('blockMsg').innerHTML = '카카오톡 브라우저에서는<br>카메라/저장이 제한됩니다';
-    document.getElementById('blockBtn').textContent = '🌐 크롬에서 열기';
+    document.getElementById('blockBtn').textContent = isIOS ? '🌐 Safari에서 열기' : '🌐 Chrome에서 열기';
     document.getElementById('blockBtn').onclick = function(){
-      var stripped = pageUrl.replace(/https?:\/\//, '');
-      // Android Chrome intent
-      location.href = 'intent://' + stripped + '#Intent;scheme=https;package=com.android.chrome;end';
+      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(pageUrl);
     };
     document.getElementById('blockExtra').innerHTML =
-      '<p style="font-size:12px;color:rgba(255,255,255,.3);margin-top:8px">자동으로 안 열리면</p>' +
-      '<div class="steps" style="margin-top:4px;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(92,184,92,.2);border-radius:12px;padding:14px 18px;width:100%;max-width:320px;font-size:14px;color:#a8d5a8;line-height:2">' +
-      '1. 우측 하단 <b>⋮</b> 터치<br>2. <b>다른 브라우저로 열기</b><br>3. <b>Chrome</b> 선택</div>';
+      '<p style="font-size:12px;color:rgba(255,255,255,.3);margin-top:12px">자동으로 안 열리면</p>' +
+      '<div style="margin-top:4px;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(92,184,92,.2);border-radius:12px;padding:14px 18px;width:100%;max-width:320px;font-size:14px;color:#a8d5a8;line-height:2">' +
+      (isIOS
+        ? '1. 우측 하단 <b>Safari</b> 아이콘 터치<br>2. 또는 하단 <b>공유(↑)</b> → <b>Safari로 열기</b>'
+        : '1. 우측 상단 <b>⋮</b> 터치<br>2. <b>다른 브라우저로 열기</b>') +
+      '</div>';
+
+  } else {
+    // 기타 인앱 브라우저: URL 복사 안내
+    document.getElementById('blockMsg').innerHTML = '이 브라우저에서는<br>카메라/저장이 제한됩니다<br><br>주소를 복사해서<br><b>' + (isIOS?'Safari':'Chrome') + '</b>에서 열어주세요';
+    document.getElementById('blockBtn').textContent = '📋 주소 복사하기';
+    document.getElementById('blockBtn').onclick = function(){
+      try{navigator.clipboard.writeText(pageUrl)}catch(e){
+        var ta=document.createElement('textarea');ta.value=pageUrl;ta.style.cssText='position:fixed;opacity:0';
+        document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
+      }
+      document.getElementById('blockBtn').textContent='✅ 복사 완료!';
+      document.getElementById('blockBtn').classList.add('copied');
+    };
+    document.getElementById('blockExtra').innerHTML = '<div class="url-box" style="margin-top:8px">' + pageUrl + '</div>';
   }
 })();
 
