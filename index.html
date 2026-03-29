@@ -9,470 +9,79 @@
 <title>🌱 오늘도 시작합니다 | 인증 타임스탬프 카메라</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700;800&family=Noto+Sans+KR:wght@400;700;900&display=swap');
+  :root{--gd:#1a2e1a;--gm:#2d5a2d;--ga:#5cb85c;--gl:#a8d5a8;--gn:#00e676;--rr:#e94560}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:#0a0a0a;color:#fff;font-family:'Noto Sans KR',sans-serif;height:100vh;height:100dvh;width:100vw;overflow:hidden;display:flex;flex-direction:column;touch-action:manipulation;-webkit-user-select:none;user-select:none}
 
-  :root {
-    --green-dark: #1a2e1a;
-    --green-mid: #2d5a2d;
-    --green-accent: #5cb85c;
-    --green-light: #a8d5a8;
-    --green-pale: #d4edda;
-    --green-neon: #00e676;
-    --red-rec: #e94560;
-  }
+  .header{background:linear-gradient(135deg,var(--gd),#1e3a1e);padding:6px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:2px solid var(--ga);flex-shrink:0;z-index:10}
+  .brand{display:flex;align-items:center;gap:5px}
+  .brand-icon{font-size:15px}
+  .brand-name{font-size:12px;font-weight:900;color:var(--gl);letter-spacing:-0.3px}
+  .brand-sub{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--ga);opacity:.7;margin-left:3px}
+  .sync-badge{display:flex;align-items:center;gap:5px;font-family:'JetBrains Mono',monospace;font-size:10px;padding:3px 8px;border-radius:20px;background:rgba(255,255,255,.05);border:1px solid rgba(92,184,92,.3);cursor:pointer;color:var(--gl)}
+  .sync-dot{width:7px;height:7px;border-radius:50%;background:#666;flex-shrink:0}
+  .sync-dot.synced{background:var(--gn);box-shadow:0 0 6px var(--gn)}
+  .sync-dot.syncing{background:#ffc107;animation:pulse 1s infinite}
+  .sync-dot.local{background:#ffc107}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
 
-  * { margin: 0; padding: 0; box-sizing: border-box; }
+  .cam{flex:1;position:relative;overflow:hidden;background:#000}
+  #vid{width:100%;height:100%;object-fit:cover;display:block}
+  canvas{display:none}
+  .ts-ov{position:absolute;top:10px;left:10px;pointer-events:none;z-index:5}
+  .ts-t{font-family:'JetBrains Mono',monospace;font-size:30px;font-weight:800;color:#fff;text-shadow:0 0 12px rgba(0,0,0,.95),0 2px 4px rgba(0,0,0,.9);line-height:1}
+  .ts-d{font-family:'JetBrains Mono',monospace;font-size:13px;color:rgba(255,255,255,.95);text-shadow:0 0 8px rgba(0,0,0,.95);margin-top:4px}
+  .ts-s{font-family:'JetBrains Mono',monospace;font-size:9px;text-shadow:0 0 8px rgba(0,0,0,.95);margin-top:2px}
+  .ts-s.ok{color:var(--gn)}.ts-s.no{color:#ffc107}
+  .wm-ov{position:absolute;bottom:10px;right:10px;pointer-events:none;z-index:5;text-align:right}
+  .wm-b{font-size:12px;font-weight:900;color:rgba(255,255,255,.45);text-shadow:0 0 8px rgba(0,0,0,.9)}
+  .wm-s{font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(168,213,168,.35);text-shadow:0 0 6px rgba(0,0,0,.9)}
+  .rec-i{position:absolute;top:14px;right:14px;display:flex;align-items:center;gap:5px;z-index:5;opacity:0;transition:opacity .3s}
+  .rec-i.on{opacity:1}
+  .rec-d{width:10px;height:10px;border-radius:50%;background:var(--rr);animation:rb 1s infinite}
+  @keyframes rb{0%,100%{opacity:1}50%{opacity:.3}}
+  .rec-t{font-family:'JetBrains Mono',monospace;font-size:13px;font-weight:700;color:var(--rr);text-shadow:0 0 8px rgba(0,0,0,.8)}
+  .rec-tm{font-family:'JetBrains Mono',monospace;font-size:11px;color:rgba(255,255,255,.8);text-shadow:0 0 8px rgba(0,0,0,.8)}
+  .off-i{position:absolute;bottom:30px;left:8px;font-family:'JetBrains Mono',monospace;font-size:8px;color:rgba(255,255,255,.25);text-shadow:0 0 6px rgba(0,0,0,.95);z-index:5;pointer-events:none}
 
-  body {
-    background: #0a0a0a;
-    color: #fff;
-    font-family: 'Noto Sans KR', sans-serif;
-    height: 100vh; height: 100dvh;
-    width: 100vw;
-    overflow: hidden;
-    display: flex;
-    flex-direction: column;
-    touch-action: manipulation;
-    -webkit-user-select: none;
-    user-select: none;
-  }
+  .ctrls{background:linear-gradient(0deg,#0a0a0a,var(--gd));padding:10px 16px 18px;display:flex;align-items:center;justify-content:center;gap:24px;flex-shrink:0;z-index:10}
+  .btn-rec{width:68px;height:68px;border-radius:50%;border:4px solid #fff;background:0 0;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+  .btn-rec .inn{width:52px;height:52px;border-radius:50%;background:var(--rr);transition:all .3s}
+  .btn-rec.on .inn{width:26px;height:26px;border-radius:6px}
+  .btn-s{width:46px;height:46px;border-radius:50%;border:2px solid rgba(168,213,168,.3);background:rgba(255,255,255,.05);color:#fff;font-size:20px;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;position:relative}
+  .btn-s:active{background:rgba(92,184,92,.15)}
+  .btn-s.rdy{border-color:var(--gn);color:var(--gn)}
+  .btn-s .bdg{position:absolute;top:-4px;right:-4px;width:16px;height:16px;border-radius:50%;background:var(--rr);font-size:9px;font-weight:700;display:none;align-items:center;justify-content:center}
+  .btn-s.rdy .bdg{display:flex}
 
-  /* ===== HEADER ===== */
-  .header {
-    background: linear-gradient(135deg, var(--green-dark) 0%, #1e3a1e 100%);
-    padding: 6px 12px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    border-bottom: 2px solid var(--green-accent);
-    flex-shrink: 0;
-    z-index: 10;
-  }
+  .init{position:absolute;inset:0;background:linear-gradient(160deg,#0a120a,var(--gd),#0a120a);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:20;gap:10px;padding:28px;text-align:center}
+  .init-l{font-size:48px;margin-bottom:4px}
+  .init h2{font-size:22px;color:var(--gl);font-weight:900;letter-spacing:-.5px}
+  .init .sub{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--ga);opacity:.7;margin-top:-4px}
+  .init p{font-size:13px;color:rgba(255,255,255,.5);line-height:1.6}
+  .init-f{display:flex;flex-direction:column;gap:6px;margin:4px 0}
+  .init-fi{font-size:12px;color:var(--gl);display:flex;align-items:center;gap:6px}
+  .init-fi span{font-size:14px}
+  .btn-go{margin-top:6px;padding:13px 40px;background:linear-gradient(135deg,var(--gm),var(--ga));color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;box-shadow:0 4px 15px rgba(92,184,92,.3)}
+  .btn-go:active{transform:scale(.96)}
+  .init-ft{margin-top:8px;font-size:9px;color:rgba(255,255,255,.2);font-family:'JetBrains Mono',monospace;line-height:1.5}
 
-  .brand {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
+  .toast{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);font-size:13px;color:#fff;background:rgba(0,0,0,.8);padding:10px 18px;border-radius:10px;z-index:30;opacity:0;transition:opacity .25s;pointer-events:none;text-align:center;max-width:85%;white-space:pre-line;backdrop-filter:blur(4px)}
+  .toast.show{opacity:1}
 
-  .brand-icon { font-size: 16px; }
-
-  .brand-name {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px;
-    font-weight: 900;
-    color: var(--green-light);
-    letter-spacing: -0.3px;
-  }
-
-  .brand-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    color: var(--green-accent);
-    opacity: 0.7;
-    margin-left: 4px;
-  }
-
-  .sync-badge {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    padding: 3px 8px;
-    border-radius: 20px;
-    background: rgba(255,255,255,0.05);
-    border: 1px solid rgba(92,184,92,0.3);
-    cursor: pointer;
-    color: var(--green-light);
-  }
-
-  .sync-dot {
-    width: 7px; height: 7px;
-    border-radius: 50%;
-    background: #666;
-    flex-shrink: 0;
-  }
-  .sync-dot.synced { background: var(--green-neon); box-shadow: 0 0 6px var(--green-neon); }
-  .sync-dot.syncing { background: #ffc107; animation: pulse 1s infinite; }
-  .sync-dot.local { background: #ffc107; }
-
-  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-  /* ===== CAMERA ===== */
-  .camera-container {
-    flex: 1;
-    position: relative;
-    overflow: hidden;
-    background: #000;
-  }
-
-  #videoElement {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-
-  canvas { display: none; }
-
-  .timestamp-overlay {
-    position: absolute;
-    top: 10px; left: 10px;
-    pointer-events: none;
-    z-index: 5;
-  }
-
-  .ts-main {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 30px;
-    font-weight: 800;
-    color: #fff;
-    text-shadow: 0 0 12px rgba(0,0,0,0.95), 0 2px 4px rgba(0,0,0,0.9);
-    line-height: 1;
-  }
-
-  .ts-date {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px;
-    color: rgba(255,255,255,0.95);
-    text-shadow: 0 0 8px rgba(0,0,0,0.95);
-    margin-top: 4px;
-  }
-
-  .ts-source {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
-    text-shadow: 0 0 8px rgba(0,0,0,0.95);
-    margin-top: 2px;
-  }
-  .ts-source.synced { color: var(--green-neon); }
-  .ts-source.local { color: #ffc107; }
-
-  /* Watermark overlay (visible on screen) */
-  .watermark-overlay {
-    position: absolute;
-    bottom: 10px; right: 10px;
-    pointer-events: none;
-    z-index: 5;
-    text-align: right;
-  }
-
-  .wm-brand {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 12px;
-    font-weight: 900;
-    color: rgba(255,255,255,0.5);
-    text-shadow: 0 0 8px rgba(0,0,0,0.9);
-  }
-
-  .wm-sub {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    color: rgba(168,213,168,0.4);
-    text-shadow: 0 0 6px rgba(0,0,0,0.9);
-  }
-
-  .rec-indicator {
-    position: absolute;
-    top: 14px; right: 14px;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    z-index: 5;
-    opacity: 0;
-    transition: opacity 0.3s;
-  }
-  .rec-indicator.active { opacity: 1; }
-
-  .rec-dot {
-    width: 10px; height: 10px;
-    border-radius: 50%;
-    background: var(--red-rec);
-    animation: recBlink 1s infinite;
-  }
-  @keyframes recBlink { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-  .rec-text {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 13px; font-weight: 700;
-    color: var(--red-rec);
-    text-shadow: 0 0 8px rgba(0,0,0,0.8);
-  }
-
-  .rec-time {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: rgba(255,255,255,0.8);
-    text-shadow: 0 0 8px rgba(0,0,0,0.8);
-  }
-
-  .offset-info {
-    position: absolute;
-    bottom: 30px; left: 8px;
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
-    color: rgba(255,255,255,0.25);
-    text-shadow: 0 0 6px rgba(0,0,0,0.95);
-    z-index: 5;
-    pointer-events: none;
-  }
-
-  /* ===== CONTROLS ===== */
-  .controls {
-    background: linear-gradient(0deg, #0a0a0a 0%, var(--green-dark) 100%);
-    padding: 10px 16px 18px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 24px;
-    flex-shrink: 0;
-    z-index: 10;
-  }
-
-  .btn-record {
-    width: 68px; height: 68px;
-    border-radius: 50%;
-    border: 4px solid #fff;
-    background: transparent;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .btn-record .inner {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: var(--red-rec);
-    transition: all 0.3s;
-  }
-
-  .btn-record.recording .inner {
-    width: 26px; height: 26px;
-    border-radius: 6px;
-  }
-
-  .btn-side {
-    width: 46px; height: 46px;
-    border-radius: 50%;
-    border: 2px solid rgba(168,213,168,0.3);
-    background: rgba(255,255,255,0.05);
-    color: #fff;
-    font-size: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    -webkit-tap-highlight-color: transparent;
-    position: relative;
-  }
-
-  .btn-side:active { background: rgba(92,184,92,0.15); }
-  .btn-side.ready { border-color: var(--green-neon); color: var(--green-neon); }
-
-  .btn-side .badge {
-    position: absolute;
-    top: -4px; right: -4px;
-    width: 16px; height: 16px;
-    border-radius: 50%;
-    background: var(--red-rec);
-    font-size: 9px; font-weight: 700;
-    display: none;
-    align-items: center;
-    justify-content: center;
-  }
-  .btn-side.ready .badge { display: flex; }
-
-  /* ===== INIT SCREEN ===== */
-  .init-screen {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(160deg, #0a120a 0%, var(--green-dark) 50%, #0a120a 100%);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    z-index: 20;
-    gap: 10px;
-    padding: 28px;
-    text-align: center;
-  }
-
-  .init-logo {
-    font-size: 48px;
-    margin-bottom: 4px;
-  }
-
-  .init-screen h2 {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 22px;
-    color: var(--green-light);
-    font-weight: 900;
-    letter-spacing: -0.5px;
-  }
-
-  .init-screen .subtitle {
-    font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
-    color: var(--green-accent);
-    opacity: 0.7;
-    margin-top: -4px;
-  }
-
-  .init-screen p {
-    font-size: 13px;
-    color: rgba(255,255,255,0.5);
-    line-height: 1.6;
-  }
-
-  .init-feature {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    margin: 4px 0;
-  }
-
-  .init-feature-item {
-    font-size: 12px;
-    color: var(--green-light);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-  }
-
-  .init-feature-item span {
-    font-size: 14px;
-  }
-
-  .btn-start {
-    margin-top: 6px;
-    padding: 13px 40px;
-    background: linear-gradient(135deg, var(--green-mid), var(--green-accent));
-    color: #fff;
-    border: none;
-    border-radius: 12px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 15px;
-    font-weight: 700;
-    cursor: pointer;
-    box-shadow: 0 4px 15px rgba(92,184,92,0.3);
-  }
-  .btn-start:active { transform: scale(0.96); }
-
-  .init-footer {
-    margin-top: 8px;
-    font-size: 9px;
-    color: rgba(255,255,255,0.2);
-    font-family: 'JetBrains Mono', monospace;
-    line-height: 1.5;
-  }
-
-  /* ===== TOAST ===== */
-  .toast {
-    position: absolute;
-    bottom: 18%;
-    left: 50%;
-    transform: translateX(-50%);
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 13px;
-    color: #fff;
-    background: rgba(0,0,0,0.8);
-    padding: 10px 18px;
-    border-radius: 10px;
-    z-index: 30;
-    opacity: 0;
-    transition: opacity 0.25s;
-    pointer-events: none;
-    text-align: center;
-    max-width: 85%;
-    white-space: pre-line;
-    backdrop-filter: blur(4px);
-  }
-  .toast.show { opacity: 1; }
-
-  /* ===== SAVE MODAL ===== */
-  .modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.85);
-    z-index: 50;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    backdrop-filter: blur(6px);
-  }
-  .modal-bg.show { display: flex; }
-
-  .modal {
-    background: var(--green-dark);
-    border: 1px solid rgba(92,184,92,0.2);
-    border-radius: 16px;
-    padding: 20px;
-    width: 90%;
-    max-width: 340px;
-  }
-
-  .modal h3 {
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 15px;
-    color: var(--green-neon);
-    margin-bottom: 12px;
-    text-align: center;
-  }
-
-  .modal-preview {
-    width: 100%;
-    border-radius: 8px;
-    background: #000;
-    margin-bottom: 14px;
-    max-height: 180px;
-    object-fit: contain;
-  }
-
-  .modal-info {
-    font-size: 11px;
-    color: rgba(255,255,255,0.5);
-    text-align: center;
-    margin-bottom: 14px;
-    font-family: 'JetBrains Mono', monospace;
-  }
-
-  .modal-btns {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .modal-btn {
-    padding: 13px;
-    border: none;
-    border-radius: 10px;
-    font-family: 'Noto Sans KR', sans-serif;
-    font-size: 14px;
-    font-weight: 700;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  .modal-btn.primary {
-    background: var(--green-accent);
-    color: #fff;
-  }
-  .modal-btn.secondary {
-    background: rgba(255,255,255,0.1);
-    color: #fff;
-  }
-  .modal-btn.close {
-    background: transparent;
-    color: rgba(255,255,255,0.4);
-    font-size: 12px;
-    padding: 8px;
-  }
-  .modal-btn:active { opacity: 0.7; }
+  .mbg{position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:50;display:none;align-items:center;justify-content:center;backdrop-filter:blur(6px)}
+  .mbg.show{display:flex}
+  .mdl{background:var(--gd);border:1px solid rgba(92,184,92,.2);border-radius:16px;padding:20px;width:92%;max-width:340px}
+  .mdl h3{font-size:15px;color:var(--gn);margin-bottom:12px;text-align:center}
+  .mdl-pv{width:100%;border-radius:8px;background:#000;margin-bottom:10px;max-height:180px;object-fit:contain}
+  .mdl-info{font-size:10px;color:rgba(255,255,255,.45);text-align:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace}
+  .mdl-btns{display:flex;flex-direction:column;gap:8px}
+  .mbtn{padding:14px;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;-webkit-tap-highlight-color:transparent}
+  .mbtn.p{background:var(--ga);color:#fff;font-size:16px}
+  .mbtn.s{background:rgba(255,255,255,.08);color:rgba(255,255,255,.6);font-size:13px}
+  .mbtn.c{background:0 0;color:rgba(255,255,255,.3);font-size:12px;padding:8px}
+  .mbtn:active{opacity:.7}
+  .mbtn-note{font-size:10px;color:rgba(255,255,255,.3);text-align:center;margin-top:4px;line-height:1.4}
 </style>
 </head>
 <body>
@@ -489,409 +98,279 @@
   </div>
 </div>
 
-<div class="camera-container">
-  <video id="videoElement" autoplay playsinline muted></video>
-  <canvas id="recordCanvas"></canvas>
-
-  <div class="timestamp-overlay" id="tsOverlay" style="display:none">
-    <div class="ts-main" id="tsTime">--:--:--</div>
-    <div class="ts-date" id="tsDate">----.--.--</div>
-    <div class="ts-source" id="tsSource"></div>
+<div class="cam">
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="cvs"></canvas>
+  <div class="ts-ov" id="tsOv" style="display:none">
+    <div class="ts-t" id="tsT">--:--:--</div>
+    <div class="ts-d" id="tsD">----.--.--</div>
+    <div class="ts-s" id="tsS"></div>
   </div>
-
-  <div class="watermark-overlay" id="wmOverlay" style="display:none">
-    <div class="wm-brand">🌱 오늘도 시작합니다</div>
-    <div class="wm-sub">PROOF CAM v1.0</div>
+  <div class="wm-ov" id="wmOv" style="display:none">
+    <div class="wm-b">🌱 오늘도 시작합니다</div>
+    <div class="wm-s">PROOF CAM v1.0</div>
   </div>
-
-  <div class="rec-indicator" id="recIndicator">
-    <div class="rec-dot"></div>
-    <span class="rec-text">REC</span>
-    <span class="rec-time" id="recTime">00:00</span>
+  <div class="rec-i" id="recI">
+    <div class="rec-d"></div>
+    <span class="rec-t">REC</span>
+    <span class="rec-tm" id="recTm">00:00</span>
   </div>
-
-  <div class="offset-info" id="offsetInfo"></div>
+  <div class="off-i" id="offI"></div>
   <div class="toast" id="toast"></div>
 
-  <div class="init-screen" id="initScreen">
-    <div class="init-logo">🌱</div>
+  <div class="init" id="initScr">
+    <div class="init-l">🌱</div>
     <h2>오늘도 시작합니다</h2>
-    <div class="subtitle">PROOF CAM — 인증 타임스탬프 카메라</div>
+    <div class="sub">PROOF CAM — 인증 타임스탬프 카메라</div>
     <p>갓생 밸런스 게임 공식 인증 도구</p>
-    <div class="init-feature">
-      <div class="init-feature-item"><span>🔒</span> NTP 서버 시간 기반 (조작 불가)</div>
-      <div class="init-feature-item"><span>🎥</span> 동영상 녹화 + 시간 자동 오버레이</div>
-      <div class="init-feature-item"><span>🌱</span> 커뮤니티 워터마크 자동 삽입</div>
+    <div class="init-f">
+      <div class="init-fi"><span>🔒</span> NTP 서버 시간 (조작 불가)</div>
+      <div class="init-fi"><span>🎥</span> 동영상 + 시간 오버레이</div>
+      <div class="init-fi"><span>🌱</span> 커뮤니티 워터마크 삽입</div>
     </div>
-    <button class="btn-start" id="btnStart">카메라 시작</button>
-    <div class="init-footer">
-      Developed by 열박연구소<br>
-      🌱 오늘도 시작합니다 전용
-    </div>
+    <button class="btn-go" id="btnGo">카메라 시작</button>
+    <div class="init-ft">Developed by 열박연구소<br>🌱 오늘도 시작합니다 전용</div>
   </div>
 </div>
 
-<div class="controls">
-  <button class="btn-side" id="btnFlip">🔄</button>
-  <button class="btn-record" id="btnRecord"><div class="inner"></div></button>
-  <button class="btn-side" id="btnSave">💾<span class="badge">1</span></button>
+<div class="ctrls">
+  <button class="btn-s" id="btnFlip">🔄</button>
+  <button class="btn-rec" id="btnRec"><div class="inn"></div></button>
+  <button class="btn-s" id="btnSave">💾<span class="bdg">1</span></button>
 </div>
 
-<!-- Save Modal -->
-<div class="modal-bg" id="modalBg">
-  <div class="modal">
+<div class="mbg" id="mbg">
+  <div class="mdl">
     <h3>🌱 인증 영상 저장</h3>
-    <video id="previewVideo" class="modal-preview" controls playsinline></video>
-    <div class="modal-info" id="modalInfo">--</div>
-    <div class="modal-btns">
-      <button class="modal-btn primary" id="btnShare">📤 저장 / 공유</button>
-      <button class="modal-btn secondary" id="btnDirect">📥 직접 다운로드</button>
-      <button class="modal-btn close" id="btnModalClose">닫기</button>
+    <video id="pvVid" class="mdl-pv" controls playsinline></video>
+    <div class="mdl-info" id="mInfo">--</div>
+    <div class="mdl-btns">
+      <button class="mbtn p" id="btnMain" style="display:none">📤 갤러리에 저장 / 공유</button>
+      <button class="mbtn s" id="btnOpen">🔗 새 탭에서 열기 (길게 눌러 저장)</button>
+      <button class="mbtn c" id="btnClose">닫기</button>
     </div>
+    <div class="mbtn-note" id="saveNote"></div>
   </div>
 </div>
 
 <script>
-(function() {
-  var ntpOffset = 0, isSynced = false;
-  var stream = null, mediaRecorder = null, recordedChunks = [];
-  var isRecording = false, recordStart = 0, recordTimer = null;
-  var lastBlob = null, lastFileName = '';
-  var facingMode = 'environment', cameraReady = false;
+(function(){
+  var ntpOff=0,synced=false,str=null,mr=null,chunks=[];
+  var rec=false,recSt=0,recTi=null,blob=null,fname='';
+  var facing='environment',camOk=false;
 
-  var video = document.getElementById('videoElement');
-  var canvas = document.getElementById('recordCanvas');
-  var ctx = canvas.getContext('2d');
-  var syncDot = document.getElementById('syncDot');
-  var syncStatusEl = document.getElementById('syncStatus');
-  var syncBadge = document.getElementById('syncBadge');
-  var tsTime = document.getElementById('tsTime');
-  var tsDate = document.getElementById('tsDate');
-  var tsSource = document.getElementById('tsSource');
-  var tsOverlay = document.getElementById('tsOverlay');
-  var wmOverlay = document.getElementById('wmOverlay');
-  var recIndicator = document.getElementById('recIndicator');
-  var recTimeEl = document.getElementById('recTime');
-  var offsetInfo = document.getElementById('offsetInfo');
-  var toastEl = document.getElementById('toast');
-  var btnStart = document.getElementById('btnStart');
-  var btnRecord = document.getElementById('btnRecord');
-  var btnFlip = document.getElementById('btnFlip');
-  var btnSave = document.getElementById('btnSave');
-  var initScreen = document.getElementById('initScreen');
-  var modalBg = document.getElementById('modalBg');
-  var previewVideo = document.getElementById('previewVideo');
-  var modalInfo = document.getElementById('modalInfo');
-  var btnShare = document.getElementById('btnShare');
-  var btnDirect = document.getElementById('btnDirect');
-  var btnModalClose = document.getElementById('btnModalClose');
+  var vid=document.getElementById('vid');
+  var cvs=document.getElementById('cvs');
+  var cx=cvs.getContext('2d');
+  var $=function(id){return document.getElementById(id)};
 
-  var toastTimer = null;
-  function showToast(msg, dur) {
-    clearTimeout(toastTimer);
-    toastEl.textContent = msg;
-    toastEl.classList.add('show');
-    toastTimer = setTimeout(function() { toastEl.classList.remove('show'); }, dur || 2000);
-  }
+  // Helpers
+  var ttm;
+  function toast(m,d){clearTimeout(ttm);$('toast').textContent=m;$('toast').classList.add('show');ttm=setTimeout(function(){$('toast').classList.remove('show')},d||2000)}
+  function p2(n){return String(n).padStart(2,'0')}
+  function now(){return new Date(Date.now()+ntpOff)}
+  function fmtT(d){return p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
+  function fmtMs(d){return '.'+String(d.getMilliseconds()).padStart(3,'0').slice(0,2)}
+  function fmtD(d){var w=['일','월','화','수','목','금','토'];return d.getFullYear()+'.'+p2(d.getMonth()+1)+'.'+p2(d.getDate())+' ('+w[d.getDay()]+')'}
+  function fmtSz(b){return b<1048576?(b/1024).toFixed(1)+' KB':(b/1048576).toFixed(1)+' MB'}
 
-  function pad2(n) { return String(n).padStart(2, '0'); }
-  function getNow() { return new Date(Date.now() + ntpOffset); }
-  function formatTime(d) { return pad2(d.getHours()) + ':' + pad2(d.getMinutes()) + ':' + pad2(d.getSeconds()); }
-  function formatMs(d) { return '.' + String(d.getMilliseconds()).padStart(3, '0').slice(0, 2); }
-  function formatDate(d) {
-    var days = ['일','월','화','수','목','금','토'];
-    return d.getFullYear() + '.' + pad2(d.getMonth()+1) + '.' + pad2(d.getDate()) + ' (' + days[d.getDay()] + ')';
-  }
-  function formatFileSize(b) {
-    if (b < 1024) return b + ' B';
-    if (b < 1048576) return (b/1024).toFixed(1) + ' KB';
-    return (b/1048576).toFixed(1) + ' MB';
-  }
-
-  // ===== NTP SYNC =====
-  async function syncTime() {
-    syncDot.className = 'sync-dot syncing';
-    syncStatusEl.textContent = '동기화';
-    var apis = [
-      { url: 'https://worldtimeapi.org/api/timezone/Asia/Seoul',
-        parse: function(d) { return new Date(d.datetime).getTime(); } },
-      { url: 'https://worldtimeapi.org/api/ip',
-        parse: function(d) { return new Date(d.datetime).getTime(); } },
-      { url: 'https://timeapi.io/api/time/current/zone?timeZone=Asia/Seoul',
-        parse: function(d) {
-          return new Date(d.year+'-'+pad2(d.month)+'-'+pad2(d.day)+'T'+
-            pad2(d.hour)+':'+pad2(d.minute)+':'+pad2(d.seconds)+'.000+09:00').getTime();
-        } }
+  // NTP
+  async function sync(){
+    $('syncDot').className='sync-dot syncing';$('syncStatus').textContent='동기화';
+    var apis=[
+      {u:'https://worldtimeapi.org/api/timezone/Asia/Seoul',p:function(d){return new Date(d.datetime).getTime()}},
+      {u:'https://worldtimeapi.org/api/ip',p:function(d){return new Date(d.datetime).getTime()}},
+      {u:'https://timeapi.io/api/time/current/zone?timeZone=Asia/Seoul',p:function(d){return new Date(d.year+'-'+p2(d.month)+'-'+p2(d.day)+'T'+p2(d.hour)+':'+p2(d.minute)+':'+p2(d.seconds)+'.000+09:00').getTime()}}
     ];
-    for (var i = 0; i < apis.length; i++) {
-      try {
-        var t1 = Date.now();
-        var ctrl = new AbortController();
-        var tid = setTimeout(function() { ctrl.abort(); }, 5000);
-        var resp = await fetch(apis[i].url, { signal: ctrl.signal });
-        clearTimeout(tid);
-        var t2 = Date.now();
-        var data = await resp.json();
-        var st = apis[i].parse(data);
-        if (isNaN(st)) continue;
-        ntpOffset = st - t1 - (t2-t1)/2;
-        isSynced = true;
-        syncDot.className = 'sync-dot synced';
-        syncStatusEl.textContent = 'NTP';
-        tsSource.textContent = '🔒 NTP 서버 시간 (조작불가)';
-        tsSource.className = 'ts-source synced';
-        offsetInfo.textContent = 'offset ' + (ntpOffset>0?'+':'') + Math.round(ntpOffset) + 'ms | ' + apis[i].url.split('/')[2];
+    for(var i=0;i<apis.length;i++){
+      try{
+        var t1=Date.now(),ac=new AbortController(),ti=setTimeout(function(){ac.abort()},5000);
+        var r=await fetch(apis[i].u,{signal:ac.signal});clearTimeout(ti);
+        var t2=Date.now(),data=await r.json(),st=apis[i].p(data);
+        if(isNaN(st))continue;
+        ntpOff=st-t1-(t2-t1)/2;synced=true;
+        $('syncDot').className='sync-dot synced';$('syncStatus').textContent='NTP';
+        $('tsS').textContent='🔒 NTP 서버 시간 (조작불가)';$('tsS').className='ts-s ok';
+        $('offI').textContent='offset '+(ntpOff>0?'+':'')+Math.round(ntpOff)+'ms | '+apis[i].u.split('/')[2];
         return;
-      } catch(e) {}
+      }catch(e){}
     }
-    isSynced = false; ntpOffset = 0;
-    syncDot.className = 'sync-dot local';
-    syncStatusEl.textContent = '로컬';
-    tsSource.textContent = '⚠ 로컬 시간 (자동시간 ON 권장)';
-    tsSource.className = 'ts-source local';
-    offsetInfo.textContent = '서버 미연결 → 로컬 시간';
-    showToast('서버 연결 실패\n로컬 시간으로 작동', 2500);
+    synced=false;ntpOff=0;
+    $('syncDot').className='sync-dot local';$('syncStatus').textContent='로컬';
+    $('tsS').textContent='⚠ 로컬 시간 (자동시간 ON 권장)';$('tsS').className='ts-s no';
+    $('offI').textContent='서버 미연결 → 로컬 시간';
+    toast('서버 연결 실패\n로컬 시간으로 작동',2500);
+  }
+  $('syncBadge').onclick=function(){if(camOk){toast('재동기화...',1500);sync()}};
+
+  // Camera
+  async function startCam(){
+    try{
+      if(str)str.getTracks().forEach(function(t){t.stop()});
+      str=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},audio:true});
+      vid.srcObject=str;await vid.play();
+      camOk=true;$('initScr').style.display='none';
+      $('tsOv').style.display='block';$('wmOv').style.display='block';
+      renderLoop();
+    }catch(e){alert('카메라 접근 실패: '+e.message)}
   }
 
-  syncBadge.addEventListener('click', function() {
-    if (!cameraReady) return;
-    showToast('재동기화...', 1500);
-    syncTime();
-  });
+  function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
 
-  // ===== CAMERA =====
-  async function startCamera() {
-    try {
-      if (stream) stream.getTracks().forEach(function(t) { t.stop(); });
-      stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: facingMode, width: { ideal: 1920 }, height: { ideal: 1080 } },
-        audio: true
-      });
-      video.srcObject = stream;
-      await video.play();
-      cameraReady = true;
-      initScreen.style.display = 'none';
-      tsOverlay.style.display = 'block';
-      wmOverlay.style.display = 'block';
-      startRenderLoop();
-    } catch(e) {
-      alert('카메라 접근 실패: ' + e.message);
-    }
-  }
+  var rl=false;
+  function renderLoop(){
+    if(rl)return;rl=true;
+    function go(){
+      if(!camOk){rl=false;return}
+      if(vid.readyState>=2){
+        var vw=vid.videoWidth||1280,vh=vid.videoHeight||720;
+        cvs.width=vw;cvs.height=vh;
+        cx.drawImage(vid,0,0,vw,vh);
+        var n=now(),ts=fmtT(n)+fmtMs(n),ds=fmtD(n);
+        var sc=Math.max(vw/400,1),pd=14*sc;
 
-  function roundRect(c, x, y, w, h, r) {
-    c.beginPath();
-    c.moveTo(x+r,y); c.lineTo(x+w-r,y);
-    c.quadraticCurveTo(x+w,y,x+w,y+r); c.lineTo(x+w,y+h-r);
-    c.quadraticCurveTo(x+w,y+h,x+w-r,y+h); c.lineTo(x+r,y+h);
-    c.quadraticCurveTo(x,y+h,x,y+h-r); c.lineTo(x,y+r);
-    c.quadraticCurveTo(x,y,x+r,y); c.closePath();
-  }
+        // Timestamp box
+        var bw=Math.min(vw*.78,350*sc),bh=74*sc;
+        cx.fillStyle='rgba(0,0,0,.6)';rr(cx,pd,pd,bw,bh,8*sc);cx.fill();
+        cx.fillStyle=synced?'#00e676':'#ffc107';rr(cx,pd,pd,4*sc,bh,2*sc);cx.fill();
+        var tx=pd+12*sc;
+        cx.font='bold '+Math.round(30*sc)+'px JetBrains Mono,monospace';cx.fillStyle='#fff';cx.textBaseline='top';cx.fillText(ts,tx,pd+5*sc);
+        cx.font=Math.round(12*sc)+'px JetBrains Mono,monospace';cx.fillStyle='rgba(255,255,255,.9)';cx.fillText(ds,tx,pd+39*sc);
+        cx.font='bold '+Math.round(9*sc)+'px JetBrains Mono,monospace';cx.fillStyle=synced?'#00e676':'#ffc107';
+        cx.fillText(synced?'🔒 NTP SYNCED | TAMPER-PROOF':'⚠ LOCAL TIME',tx,pd+56*sc);
 
-  var renderRunning = false;
-  function startRenderLoop() {
-    if (renderRunning) return;
-    renderRunning = true;
+        // Watermark
+        var wt1='🌱 오늘도 시작합니다',wt2='PROOF CAM v1.0 | 열박연구소';
+        cx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';
+        var w1=cx.measureText(wt1).width;
+        cx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';
+        var w2=cx.measureText(wt2).width;
+        var wmW=Math.max(w1,w2)+20*sc,wmY=vh-pd-34*sc;
+        cx.fillStyle='rgba(0,0,0,.35)';rr(cx,vw-pd-wmW,wmY,wmW,34*sc,6*sc);cx.fill();
+        cx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';cx.fillStyle='rgba(255,255,255,.55)';cx.textBaseline='top';
+        cx.fillText(wt1,vw-pd-wmW+10*sc,wmY+4*sc);
+        cx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';cx.fillStyle='rgba(168,213,168,.45)';
+        cx.fillText(wt2,vw-pd-wmW+10*sc,wmY+22*sc);
 
-    function render() {
-      if (!cameraReady) { renderRunning = false; return; }
-      if (video.readyState >= 2) {
-        var vw = video.videoWidth || 1280, vh = video.videoHeight || 720;
-        canvas.width = vw; canvas.height = vh;
-        ctx.drawImage(video, 0, 0, vw, vh);
-
-        var now = getNow();
-        var timeStr = formatTime(now) + formatMs(now);
-        var dateStr = formatDate(now);
-        var scale = Math.max(vw / 400, 1);
-        var p = 14 * scale;
-
-        // === TOP LEFT: Timestamp box ===
-        var boxW = Math.min(vw * 0.78, 350 * scale);
-        var boxH = 74 * scale;
-        ctx.fillStyle = 'rgba(0,0,0,0.6)';
-        roundRect(ctx, p, p, boxW, boxH, 8*scale); ctx.fill();
-
-        // Green accent bar
-        ctx.fillStyle = isSynced ? '#00e676' : '#ffc107';
-        roundRect(ctx, p, p, 4*scale, boxH, 2*scale); ctx.fill();
-
-        var tx = p + 12*scale;
-        ctx.font = 'bold ' + Math.round(30*scale) + 'px JetBrains Mono, monospace';
-        ctx.fillStyle = '#fff'; ctx.textBaseline = 'top';
-        ctx.fillText(timeStr, tx, p + 5*scale);
-
-        ctx.font = Math.round(12*scale) + 'px JetBrains Mono, monospace';
-        ctx.fillStyle = 'rgba(255,255,255,0.9)';
-        ctx.fillText(dateStr, tx, p + 39*scale);
-
-        ctx.font = 'bold ' + Math.round(9*scale) + 'px JetBrains Mono, monospace';
-        ctx.fillStyle = isSynced ? '#00e676' : '#ffc107';
-        ctx.fillText(isSynced ? '🔒 NTP SYNCED | TAMPER-PROOF' : '⚠ LOCAL TIME', tx, p + 56*scale);
-
-        // === BOTTOM RIGHT: Community watermark ===
-        var wmY = vh - p - 36*scale;
-        var wmText1 = '🌱 오늘도 시작합니다';
-        var wmText2 = 'PROOF CAM v1.0 | 열박연구소';
-
-        ctx.font = 'bold ' + Math.round(14*scale) + 'px Noto Sans KR, sans-serif';
-        var wm1Width = ctx.measureText(wmText1).width;
-        ctx.font = Math.round(8*scale) + 'px JetBrains Mono, monospace';
-        var wm2Width = ctx.measureText(wmText2).width;
-        var wmBoxW = Math.max(wm1Width, wm2Width) + 20*scale;
-
-        ctx.fillStyle = 'rgba(0,0,0,0.35)';
-        roundRect(ctx, vw - p - wmBoxW, wmY, wmBoxW, 34*scale, 6*scale);
-        ctx.fill();
-
-        ctx.font = 'bold ' + Math.round(14*scale) + 'px Noto Sans KR, sans-serif';
-        ctx.fillStyle = 'rgba(255,255,255,0.6)';
-        ctx.textBaseline = 'top';
-        ctx.fillText(wmText1, vw - p - wmBoxW + 10*scale, wmY + 4*scale);
-
-        ctx.font = Math.round(8*scale) + 'px JetBrains Mono, monospace';
-        ctx.fillStyle = 'rgba(168,213,168,0.5)';
-        ctx.fillText(wmText2, vw - p - wmBoxW + 10*scale, wmY + 22*scale);
-
-        // === REC badge ===
-        if (isRecording) {
-          var el = Math.floor((Date.now()-recordStart)/1000);
-          var rw = 95*scale, rh = 24*scale;
-          var rx = vw - p - rw, ry = p;
-          ctx.fillStyle = 'rgba(233,69,96,0.9)';
-          roundRect(ctx, rx, ry, rw, rh, 5*scale); ctx.fill();
-          ctx.fillStyle = '#fff';
-          ctx.beginPath(); ctx.arc(rx+11*scale, ry+rh/2, 4*scale, 0, Math.PI*2); ctx.fill();
-          ctx.font = 'bold ' + Math.round(12*scale) + 'px JetBrains Mono, monospace';
-          ctx.textBaseline = 'top';
-          ctx.fillText('REC '+pad2(Math.floor(el/60))+':'+pad2(el%60), rx+20*scale, ry+5*scale);
+        // REC
+        if(rec){
+          var el=Math.floor((Date.now()-recSt)/1000),rw=95*sc,rh=24*sc,rx=vw-pd-rw,ry=pd;
+          cx.fillStyle='rgba(233,69,96,.9)';rr(cx,rx,ry,rw,rh,5*sc);cx.fill();
+          cx.fillStyle='#fff';cx.beginPath();cx.arc(rx+11*sc,ry+rh/2,4*sc,0,Math.PI*2);cx.fill();
+          cx.font='bold '+Math.round(12*sc)+'px JetBrains Mono,monospace';cx.textBaseline='top';
+          cx.fillText('REC '+p2(Math.floor(el/60))+':'+p2(el%60),rx+20*sc,ry+5*sc);
         }
       }
-
-      var now2 = getNow();
-      tsTime.textContent = formatTime(now2) + formatMs(now2);
-      tsDate.textContent = formatDate(now2);
-      requestAnimationFrame(render);
+      var n2=now();$('tsT').textContent=fmtT(n2)+fmtMs(n2);$('tsD').textContent=fmtD(n2);
+      requestAnimationFrame(go);
     }
-    render();
+    go();
   }
 
-  // ===== RECORDING =====
-  function startRecording() {
-    if (!cameraReady) { showToast('카메라를 먼저 시작하세요'); return; }
-    recordedChunks = [];
-    var cs = canvas.captureStream(30);
-    if (stream) stream.getAudioTracks().forEach(function(t) { cs.addTrack(t); });
+  // Recording
+  function startRec(){
+    if(!camOk){toast('카메라를 먼저 시작하세요');return}
+    chunks=[];
+    var cs=cvs.captureStream(24);
+    if(str)str.getAudioTracks().forEach(function(t){cs.addTrack(t)});
+    var mm=['video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm','video/mp4'],opt={};
+    for(var j=0;j<mm.length;j++){if(MediaRecorder.isTypeSupported(mm[j])){opt={mimeType:mm[j]};break}}
+    try{mr=new MediaRecorder(cs,opt)}catch(e){toast('녹화 실패: '+e.message,3000);return}
 
-    var mimes = ['video/webm;codecs=vp9,opus','video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm','video/mp4'];
-    var opts = {};
-    for (var j = 0; j < mimes.length; j++) {
-      if (MediaRecorder.isTypeSupported(mimes[j])) { opts = { mimeType: mimes[j] }; break; }
-    }
-
-    try { mediaRecorder = new MediaRecorder(cs, opts); }
-    catch(e) { showToast('녹화 실패: ' + e.message, 3000); return; }
-
-    mediaRecorder.ondataavailable = function(e) {
-      if (e.data && e.data.size > 0) recordedChunks.push(e.data);
+    mr.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data)};
+    mr.onstop=function(){
+      if(chunks.length===0){toast('녹화 데이터 없음',2000);return}
+      blob=new Blob(chunks,{type:opt.mimeType||'video/webm'});
+      if(blob.size<1000){toast('녹화가 너무 짧습니다\n2초 이상 녹화하세요',2500);blob=null;return}
+      var n=now(),ext=(opt.mimeType&&opt.mimeType.indexOf('mp4')>-1)?'mp4':'webm';
+      fname='PROOF_'+n.getFullYear()+p2(n.getMonth()+1)+p2(n.getDate())+'_'+p2(n.getHours())+p2(n.getMinutes())+p2(n.getSeconds())+'.'+ext;
+      $('btnSave').classList.add('rdy');
+      showModal();
     };
-    mediaRecorder.onstop = function() {
-      lastBlob = new Blob(recordedChunks, { type: opts.mimeType || 'video/webm' });
-      var now = getNow();
-      var ext = (opts.mimeType && opts.mimeType.indexOf('mp4') > -1) ? 'mp4' : 'webm';
-      lastFileName = 'PROOF_' + now.getFullYear() + pad2(now.getMonth()+1) + pad2(now.getDate()) + '_' +
-        pad2(now.getHours()) + pad2(now.getMinutes()) + pad2(now.getSeconds()) + '.' + ext;
-      btnSave.classList.add('ready');
-      showSaveModal();
-    };
+    mr.onerror=function(){toast('녹화 오류 발생',2000);stopRec()};
 
-    mediaRecorder.start(500);
-    isRecording = true;
-    recordStart = Date.now();
-    btnRecord.classList.add('recording');
-    recIndicator.classList.add('active');
-    showToast('🔴 녹화 시작', 1000);
-
-    recordTimer = setInterval(function() {
-      var el = Math.floor((Date.now()-recordStart)/1000);
-      recTimeEl.textContent = pad2(Math.floor(el/60))+':'+pad2(el%60);
-    }, 250);
+    mr.start(1000);
+    rec=true;recSt=Date.now();
+    $('btnRec').classList.add('on');$('recI').classList.add('on');
+    toast('🔴 녹화 시작',1000);
+    recTi=setInterval(function(){
+      var el=Math.floor((Date.now()-recSt)/1000);
+      $('recTm').textContent=p2(Math.floor(el/60))+':'+p2(el%60);
+    },250);
   }
 
-  function stopRecording() {
-    if (mediaRecorder && mediaRecorder.state !== 'inactive') mediaRecorder.stop();
-    isRecording = false;
-    btnRecord.classList.remove('recording');
-    recIndicator.classList.remove('active');
-    if (recordTimer) clearInterval(recordTimer);
-    recTimeEl.textContent = '00:00';
+  function stopRec(){
+    if(mr&&mr.state!=='inactive')mr.stop();
+    rec=false;$('btnRec').classList.remove('on');$('recI').classList.remove('on');
+    if(recTi)clearInterval(recTi);$('recTm').textContent='00:00';
   }
 
-  // ===== SAVE =====
-  function showSaveModal() {
-    if (!lastBlob) return;
-    previewVideo.src = URL.createObjectURL(lastBlob);
-    var dur = Math.floor((Date.now() - recordStart) / 1000);
-    modalInfo.textContent = lastFileName + ' | ' + formatFileSize(lastBlob.size) + ' | ' + pad2(Math.floor(dur/60)) + ':' + pad2(dur%60);
-    if (navigator.share && navigator.canShare) {
-      btnShare.style.display = 'flex';
-    } else {
-      btnShare.style.display = 'none';
-    }
-    modalBg.classList.add('show');
-  }
+  // Save Modal
+  var blobUrl=null;
+  function showModal(){
+    if(!blob)return;
+    if(blobUrl)URL.revokeObjectURL(blobUrl);
+    blobUrl=URL.createObjectURL(blob);
+    $('pvVid').src=blobUrl;
+    var dur=Math.floor((Date.now()-recSt)/1000);
+    $('mInfo').textContent=fname+' | '+fmtSz(blob.size)+' | '+p2(Math.floor(dur/60))+':'+p2(dur%60);
 
-  btnShare.addEventListener('click', async function() {
-    if (!lastBlob) return;
-    try {
-      var file = new File([lastBlob], lastFileName, { type: lastBlob.type });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-        await navigator.share({ files: [file], title: '🌱 오늘도 시작합니다 인증', text: lastFileName });
-        showToast('✅ 저장/공유 완료!', 2000);
-        modalBg.classList.remove('show');
+    // Check share API
+    var canShare=false;
+    try{
+      if(navigator.share&&navigator.canShare){
+        var testFile=new File([new Blob(['test'])], 'test.webm',{type:'video/webm'});
+        canShare=navigator.canShare({files:[testFile]});
       }
-    } catch(e) {
-      if (e.name !== 'AbortError') showToast('공유 취소됨', 1500);
+    }catch(e){}
+
+    if(canShare){
+      $('btnMain').style.display='flex';
+      $('btnOpen').querySelector('span') || ($('btnOpen').textContent='🔗 새 탭에서 열기');
+      $('saveNote').textContent='💡 "갤러리에 저장"을 누르면 → 파일에 저장 선택';
+    }else{
+      $('btnMain').style.display='none';
+      $('saveNote').textContent='💡 새 탭에서 열린 영상을 길게 누르면 저장됩니다';
     }
-  });
+    $('mbg').classList.add('show');
+  }
 
-  btnDirect.addEventListener('click', function() {
-    if (!lastBlob) return;
-    var url = URL.createObjectURL(lastBlob);
-    var a = document.createElement('a');
-    a.href = url; a.download = lastFileName;
-    a.style.display = 'none';
-    document.body.appendChild(a);
-    try { a.click(); showToast('📥 다운로드 시작\n내 파일 → 다운로드 확인', 3000); }
-    catch(e) { window.open(url, '_blank'); showToast('새 탭에서 열림\n길게 눌러서 저장', 3000); }
-    setTimeout(function() { document.body.removeChild(a); }, 1000);
-    modalBg.classList.remove('show');
-  });
+  // PRIMARY: navigator.share (갤러리 저장)
+  $('btnMain').onclick=async function(){
+    if(!blob)return;
+    try{
+      var file=new File([blob],fname,{type:blob.type,lastModified:Date.now()});
+      await navigator.share({files:[file],title:'🌱 오늘도 시작합니다 인증',text:fname});
+      toast('✅ 저장 완료!',2000);
+      $('mbg').classList.remove('show');
+    }catch(e){
+      if(e.name==='AbortError'){toast('취소됨',1000)}
+      else{toast('공유 실패 — 새 탭 열기를 사용하세요',2500)}
+    }
+  };
 
-  btnModalClose.addEventListener('click', function() { modalBg.classList.remove('show'); });
+  // FALLBACK: 새 탭에서 열기
+  $('btnOpen').onclick=function(){
+    if(!blobUrl)return;
+    window.open(blobUrl,'_blank');
+    toast('새 탭에서 영상 열림\n⬇ 영상을 길게 눌러 저장',3500);
+    $('mbg').classList.remove('show');
+  };
 
-  // ===== EVENTS =====
-  btnStart.addEventListener('click', function() { startCamera(); syncTime(); });
+  $('btnClose').onclick=function(){$('mbg').classList.remove('show')};
 
-  btnRecord.addEventListener('click', function() {
-    if (isRecording) stopRecording();
-    else startRecording();
-  });
+  // Events
+  $('btnGo').onclick=function(){startCam();sync()};
+  $('btnRec').onclick=function(){if(rec)stopRec();else startRec()};
+  $('btnFlip').onclick=function(){
+    if(rec){toast('녹화 중 전환 불가',1500);return}
+    facing=facing==='environment'?'user':'environment';
+    toast(facing==='user'?'📱 전면':'📸 후면',800);
+    camOk=false;rl=false;startCam();
+  };
+  $('btnSave').onclick=function(){if(blob)showModal();else toast('녹화된 영상 없음',1500)};
 
-  btnFlip.addEventListener('click', function() {
-    if (isRecording) { showToast('녹화 중 전환 불가', 1500); return; }
-    facingMode = facingMode === 'environment' ? 'user' : 'environment';
-    showToast(facingMode === 'user' ? '📱 전면' : '📸 후면', 800);
-    cameraReady = false; renderRunning = false;
-    startCamera();
-  });
-
-  btnSave.addEventListener('click', function() {
-    if (lastBlob) showSaveModal();
-    else showToast('녹화된 영상 없음', 1500);
-  });
-
-  setInterval(syncTime, 300000);
+  setInterval(sync,300000);
 })();
 </script>
 </body>
