@@ -13,9 +13,6 @@
   .block{position:fixed;inset:0;z-index:999;background:linear-gradient(160deg,#0a120a,#1a2e1a,#0a120a);display:none;flex-direction:column;align-items:center;justify-content:center;padding:28px;text-align:center;gap:14px}
   .block h2{font-size:20px;color:#a8d5a8;font-weight:900}
   .block p{font-size:14px;color:rgba(255,255,255,.6);line-height:1.7}
-  .block .url-box{background:rgba(255,255,255,.08);border:1px solid rgba(92,184,92,.3);border-radius:10px;padding:12px 16px;width:100%;max-width:320px;font:12px 'JetBrains Mono',monospace;color:#a8d5a8;word-break:break-all;text-align:left}
-  .block .steps{text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(92,184,92,.2);border-radius:12px;padding:14px 18px;width:100%;max-width:320px;font-size:14px;color:#a8d5a8;line-height:2}
-  .block .steps b{color:#fff}
   .bbtn{padding:14px 32px;background:#5cb85c;color:#fff;border:none;border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;width:100%;max-width:320px}
   .bbtn:active{transform:scale(.96)}
   .bbtn.copied{background:#00e676;color:#000}
@@ -32,7 +29,7 @@
   @keyframes pu{0%,100%{opacity:1}50%{opacity:.4}}
 
   .cam{flex:1;position:relative;overflow:hidden;background:#000}
-  video{width:100%;height:100%;object-fit:cover;display:block}
+  #vid{width:100%;height:100%;object-fit:cover;display:block}
   canvas{display:none}
   .ov{position:absolute;pointer-events:none;z-index:5}
   .ov.tl{top:10px;left:10px}
@@ -86,7 +83,6 @@
 </head>
 <body>
 
-<!-- 인앱 브라우저 차단 화면 -->
 <div class="block" id="blockScr">
   <div style="font-size:48px">🌱</div>
   <h2>오늘도 시작합니다 PROOF CAM</h2>
@@ -101,14 +97,14 @@
 </div>
 
 <div class="cam">
-  <video id="v" autoplay playsinline muted></video>
-  <canvas id="c"></canvas>
+  <video id="vid" autoplay playsinline muted></video>
+  <canvas id="cvs"></canvas>
   <div class="ov tl" id="tov" style="display:none"><div class="tt" id="tt">--:--:--</div><div class="td" id="td"></div><div class="tx" id="tx"></div></div>
   <div class="ov br" id="wov" style="display:none"><div class="wt">🌱 오늘도 시작합니다</div><div class="ws">PROOF CAM v1.0</div></div>
   <div class="ri" id="ri"><div class="rd"></div><span class="rt">REC</span><span class="rm" id="rm">00:00</span></div>
   <div class="oi" id="oi"></div>
   <div class="toast" id="to"></div>
-  <div class="init" id="is">
+  <div class="init" id="initScr">
     <div style="font-size:48px">🌱</div>
     <h2>오늘도 시작합니다</h2>
     <div class="sub">PROOF CAM — 인증 타임스탬프 카메라</div>
@@ -140,236 +136,378 @@
 
 <script>
 // ============================================
-// 1. 인앱 브라우저 감지
+// 인앱 브라우저 감지
 // ============================================
 (function(){
-  var ua = navigator.userAgent || '';
-  var isKakao = /KAKAOTALK/i.test(ua);
-  var isOtherInApp = /Line\/|NAVER|FBAN|FBAV|Instagram/i.test(ua);
-  if(!isKakao && !isOtherInApp) return;
-
-  var isIOS = /iPhone|iPad|iPod/i.test(ua);
-  var pageUrl = location.href;
-  var bs = document.getElementById('blockScr');
-  bs.style.display = 'flex';
-
+  var ua=navigator.userAgent||'';
+  var isKakao=/KAKAOTALK/i.test(ua);
+  var isOther=/Line\/|NAVER|FBAN|FBAV|Instagram/i.test(ua);
+  if(!isKakao&&!isOther)return;
+  var isIOS=/iPhone|iPad|iPod/i.test(ua);
+  var url=location.href;
+  document.getElementById('blockScr').style.display='flex';
   if(isKakao){
-    // 카카오톡 전용 스킴: iOS→Safari, Android→Chrome 자동
-    document.getElementById('blockMsg').innerHTML = '카카오톡 브라우저에서는<br>카메라/저장이 제한됩니다';
-    document.getElementById('blockBtn').textContent = isIOS ? '🌐 Safari에서 열기' : '🌐 Chrome에서 열기';
-    document.getElementById('blockBtn').onclick = function(){
-      location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(pageUrl);
+    document.getElementById('blockMsg').innerHTML='카카오톡 브라우저에서는<br>카메라/저장이 제한됩니다';
+    document.getElementById('blockBtn').textContent=isIOS?'🌐 Safari에서 열기':'🌐 Chrome에서 열기';
+    document.getElementById('blockBtn').onclick=function(){location.href='kakaotalk://web/openExternal?url='+encodeURIComponent(url)};
+    document.getElementById('blockExtra').innerHTML='<p style="font-size:11px;color:rgba(255,255,255,.25);margin-top:10px">자동으로 안 열리면<br>'+(isIOS?'하단 Safari 아이콘 터치':'우측 상단 ⋮ → 다른 브라우저로 열기')+'</p>';
+  }else{
+    document.getElementById('blockMsg').innerHTML='이 브라우저에서는 제한됩니다<br>주소를 복사해서 '+(isIOS?'Safari':'Chrome')+'에서 열어주세요';
+    document.getElementById('blockBtn').textContent='📋 주소 복사';
+    document.getElementById('blockBtn').onclick=function(){
+      try{navigator.clipboard.writeText(url)}catch(e){var t=document.createElement('textarea');t.value=url;t.style.cssText='position:fixed;opacity:0';document.body.appendChild(t);t.select();document.execCommand('copy');document.body.removeChild(t)}
+      document.getElementById('blockBtn').textContent='✅ 복사 완료!';document.getElementById('blockBtn').classList.add('copied');
     };
-    document.getElementById('blockExtra').innerHTML =
-      '<p style="font-size:12px;color:rgba(255,255,255,.3);margin-top:12px">자동으로 안 열리면</p>' +
-      '<div style="margin-top:4px;text-align:left;background:rgba(255,255,255,.05);border:1px solid rgba(92,184,92,.2);border-radius:12px;padding:14px 18px;width:100%;max-width:320px;font-size:14px;color:#a8d5a8;line-height:2">' +
-      (isIOS
-        ? '1. 우측 하단 <b>Safari</b> 아이콘 터치<br>2. 또는 하단 <b>공유(↑)</b> → <b>Safari로 열기</b>'
-        : '1. 우측 상단 <b>⋮</b> 터치<br>2. <b>다른 브라우저로 열기</b>') +
-      '</div>';
-
-  } else {
-    // 기타 인앱 브라우저: URL 복사 안내
-    document.getElementById('blockMsg').innerHTML = '이 브라우저에서는<br>카메라/저장이 제한됩니다<br><br>주소를 복사해서<br><b>' + (isIOS?'Safari':'Chrome') + '</b>에서 열어주세요';
-    document.getElementById('blockBtn').textContent = '📋 주소 복사하기';
-    document.getElementById('blockBtn').onclick = function(){
-      try{navigator.clipboard.writeText(pageUrl)}catch(e){
-        var ta=document.createElement('textarea');ta.value=pageUrl;ta.style.cssText='position:fixed;opacity:0';
-        document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-      }
-      document.getElementById('blockBtn').textContent='✅ 복사 완료!';
-      document.getElementById('blockBtn').classList.add('copied');
-    };
-    document.getElementById('blockExtra').innerHTML = '<div class="url-box" style="margin-top:8px">' + pageUrl + '</div>';
   }
 })();
 
 // ============================================
-// 2. 메인 앱 (정상 브라우저에서만 실행)
+// 전역 상태
 // ============================================
-var ntpOff=0,synced=false,stream=null,rec=null,chunks=[];
-var isRec=false,recSt=0,recTi=null;
-var blob=null,fname='',burl=null;
-var face='environment',camOk=false,rendering=false;
-var vid=document.getElementById('v'),cvs=document.getElementById('c'),cx=cvs.getContext('2d');
+var ntpOff=0, synced=false;
+var stream=null, camReady=false, camStarting=false;
+var recorder=null, chunks=[], isRec=false, recStart=0, recTimer=null;
+var savedBlob=null, savedName='', blobUrl=null;
+var facing='environment', rendering=false;
+var canvasW=0, canvasH=0; // 캔버스 크기 고정용
 
-var _t;
-function toast(m,d){clearTimeout(_t);var e=document.getElementById('to');e.textContent=m;e.classList.add('show');_t=setTimeout(function(){e.classList.remove('show')},d||2000)}
+var vid=document.getElementById('vid');
+var cvs=document.getElementById('cvs');
+var ctx=cvs.getContext('2d');
+
+// ============================================
+// 유틸
+// ============================================
+var _tt;
+function toast(m,d){clearTimeout(_tt);var e=document.getElementById('to');e.textContent=m;e.classList.add('show');_tt=setTimeout(function(){e.classList.remove('show')},d||2000)}
 function p2(n){return String(n).padStart(2,'0')}
-function gT(){return new Date(Date.now()+ntpOff)}
-function fT(d){return p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
-function fM(d){return '.'+String(d.getMilliseconds()).padStart(3,'0').slice(0,2)}
-function fD(d){var w=['일','월','화','수','목','금','토'];return d.getFullYear()+'.'+p2(d.getMonth()+1)+'.'+p2(d.getDate())+' ('+w[d.getDay()]+')'}
-function fS(b){return b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB'}
+function now(){return new Date(Date.now()+ntpOff)}
+function fmtTime(d){return p2(d.getHours())+':'+p2(d.getMinutes())+':'+p2(d.getSeconds())}
+function fmtMs(d){return '.'+String(d.getMilliseconds()).padStart(3,'0').slice(0,2)}
+function fmtDate(d){var w=['일','월','화','수','목','금','토'];return d.getFullYear()+'.'+p2(d.getMonth()+1)+'.'+p2(d.getDate())+' ('+w[d.getDay()]+')'}
+function fmtSize(b){return b<1048576?(b/1024).toFixed(1)+'KB':(b/1048576).toFixed(1)+'MB'}
 
 // ============================================
-// 3. NTP 동기화
+// NTP 동기화
 // ============================================
 async function syncNTP(){
-  if(!camOk)return;
-  document.getElementById('sd').className='sdot wait';document.getElementById('ss').textContent='동기화';
+  document.getElementById('sd').className='sdot wait';
+  document.getElementById('ss').textContent='동기화';
   var apis=[
     {u:'https://worldtimeapi.org/api/timezone/Asia/Seoul',p:function(d){return new Date(d.datetime).getTime()}},
     {u:'https://worldtimeapi.org/api/ip',p:function(d){return new Date(d.datetime).getTime()}},
     {u:'https://timeapi.io/api/time/current/zone?timeZone=Asia/Seoul',p:function(d){return new Date(d.year+'-'+p2(d.month)+'-'+p2(d.day)+'T'+p2(d.hour)+':'+p2(d.minute)+':'+p2(d.seconds)+'.000+09:00').getTime()}}
   ];
-  for(var i=0;i<apis.length;i++){try{
-    var t1=Date.now(),r=await fetch(apis[i].u),t2=Date.now(),d=await r.json(),st=apis[i].p(d);
-    if(isNaN(st))continue;
-    ntpOff=st-t1-(t2-t1)/2;synced=true;
-    document.getElementById('sd').className='sdot ok';document.getElementById('ss').textContent='NTP';
-    document.getElementById('tx').textContent='🔒 NTP 서버 시간 (조작불가)';document.getElementById('tx').className='tx ok';
-    document.getElementById('oi').textContent='offset '+(ntpOff>0?'+':'')+Math.round(ntpOff)+'ms';
-    return;
-  }catch(e){}}
-  synced=false;ntpOff=0;
-  document.getElementById('sd').className='sdot no';document.getElementById('ss').textContent='로컬';
-  document.getElementById('tx').textContent='⚠ 로컬 시간';document.getElementById('tx').className='tx no';
+  for(var i=0;i<apis.length;i++){
+    try{
+      var t1=Date.now(),r=await fetch(apis[i].u),t2=Date.now(),d=await r.json(),st=apis[i].p(d);
+      if(isNaN(st))continue;
+      ntpOff=st-t1-(t2-t1)/2; synced=true;
+      document.getElementById('sd').className='sdot ok';
+      document.getElementById('ss').textContent='NTP';
+      document.getElementById('tx').textContent='🔒 NTP 서버 시간 (조작불가)';
+      document.getElementById('tx').className='tx ok';
+      document.getElementById('oi').textContent='offset '+(ntpOff>0?'+':'')+Math.round(ntpOff)+'ms';
+      return;
+    }catch(e){}
+  }
+  synced=false; ntpOff=0;
+  document.getElementById('sd').className='sdot no';
+  document.getElementById('ss').textContent='로컬';
+  document.getElementById('tx').textContent='⚠ 로컬 시간';
+  document.getElementById('tx').className='tx no';
 }
 
 // ============================================
-// 4. 카메라
+// 카메라 (뮤텍스로 중복 시작 방지)
 // ============================================
 async function startApp(){
+  if(camStarting){toast('카메라 시작 중...');return}
+  camStarting=true;
   try{
-    if(stream)stream.getTracks().forEach(function(t){t.stop()});
-    stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:face,width:{ideal:1280},height:{ideal:720}},audio:true});
-    vid.srcObject=stream;await vid.play();camOk=true;
-    document.getElementById('is').style.display='none';
+    // 기존 스트림 완전 정리
+    if(stream){
+      stream.getTracks().forEach(function(t){t.stop()});
+      stream=null;
+    }
+    vid.srcObject=null;
+    camReady=false;
+
+    // 잠깐 대기 (이전 리소스 해제 시간)
+    await new Promise(function(r){setTimeout(r,300)});
+
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:facing, width:{ideal:1280}, height:{ideal:720}},
+      audio:true
+    });
+    vid.srcObject=stream;
+    await vid.play();
+
+    // ★ 캔버스 크기를 여기서 한 번만 설정
+    await new Promise(function(r){
+      if(vid.videoWidth>0){r();return}
+      vid.onloadedmetadata=function(){r()};
+      setTimeout(r,2000); // 안전 타임아웃
+    });
+
+    canvasW=vid.videoWidth||1280;
+    canvasH=vid.videoHeight||720;
+    cvs.width=canvasW;
+    cvs.height=canvasH;
+
+    camReady=true;
+    document.getElementById('initScr').style.display='none';
     document.getElementById('tov').style.display='block';
     document.getElementById('wov').style.display='block';
-    doRender();syncNTP();
-  }catch(e){alert('카메라 실패: '+e.message)}
+
+    if(!rendering) startRender();
+    syncNTP();
+
+  }catch(e){
+    toast('카메라 실패: '+e.message,3000);
+  }finally{
+    camStarting=false;
+  }
 }
 
+// ============================================
+// 렌더링 (캔버스 크기 재설정 안 함!)
+// ============================================
 function rr(c,x,y,w,h,r){c.beginPath();c.moveTo(x+r,y);c.lineTo(x+w-r,y);c.quadraticCurveTo(x+w,y,x+w,y+r);c.lineTo(x+w,y+h-r);c.quadraticCurveTo(x+w,y+h,x+w-r,y+h);c.lineTo(x+r,y+h);c.quadraticCurveTo(x,y+h,x,y+h-r);c.lineTo(x,y+r);c.quadraticCurveTo(x,y,x+r,y);c.closePath()}
 
-function doRender(){
-  if(rendering)return;rendering=true;
-  (function lp(){
-    if(!camOk){rendering=false;return}
+function startRender(){
+  if(rendering)return;
+  rendering=true;
+  (function loop(){
+    if(!camReady){rendering=false;return}
     if(vid.readyState>=2){
-      var vw=vid.videoWidth||1280,vh=vid.videoHeight||720;cvs.width=vw;cvs.height=vh;cx.drawImage(vid,0,0,vw,vh);
-      var n=gT(),ts=fT(n)+fM(n),ds=fD(n),sc=Math.max(vw/400,1),pd=14*sc;
-      // Timestamp
+      var vw=canvasW, vh=canvasH; // ★ 고정 크기 사용 (매 프레임 재설정 안 함)
+      ctx.drawImage(vid,0,0,vw,vh);
+      var n=now(),ts=fmtTime(n)+fmtMs(n),ds=fmtDate(n);
+      var sc=Math.max(vw/400,1),pd=14*sc;
+
+      // 타임스탬프 박스
       var bw=Math.min(vw*.78,350*sc),bh=74*sc;
-      cx.fillStyle='rgba(0,0,0,.6)';rr(cx,pd,pd,bw,bh,8*sc);cx.fill();
-      cx.fillStyle=synced?'#00e676':'#ffc107';rr(cx,pd,pd,4*sc,bh,2*sc);cx.fill();
+      ctx.fillStyle='rgba(0,0,0,.6)';rr(ctx,pd,pd,bw,bh,8*sc);ctx.fill();
+      ctx.fillStyle=synced?'#00e676':'#ffc107';rr(ctx,pd,pd,4*sc,bh,2*sc);ctx.fill();
       var tx=pd+12*sc;
-      cx.font='bold '+Math.round(30*sc)+'px JetBrains Mono,monospace';cx.fillStyle='#fff';cx.textBaseline='top';cx.fillText(ts,tx,pd+5*sc);
-      cx.font=Math.round(12*sc)+'px JetBrains Mono,monospace';cx.fillStyle='rgba(255,255,255,.9)';cx.fillText(ds,tx,pd+39*sc);
-      cx.font='bold '+Math.round(9*sc)+'px JetBrains Mono,monospace';cx.fillStyle=synced?'#00e676':'#ffc107';
-      cx.fillText(synced?'🔒 NTP SYNCED | TAMPER-PROOF':'⚠ LOCAL TIME',tx,pd+56*sc);
-      // Watermark
+      ctx.font='bold '+Math.round(30*sc)+'px JetBrains Mono,monospace';ctx.fillStyle='#fff';ctx.textBaseline='top';ctx.fillText(ts,tx,pd+5*sc);
+      ctx.font=Math.round(12*sc)+'px JetBrains Mono,monospace';ctx.fillStyle='rgba(255,255,255,.9)';ctx.fillText(ds,tx,pd+39*sc);
+      ctx.font='bold '+Math.round(9*sc)+'px JetBrains Mono,monospace';ctx.fillStyle=synced?'#00e676':'#ffc107';
+      ctx.fillText(synced?'🔒 NTP SYNCED | TAMPER-PROOF':'⚠ LOCAL TIME',tx,pd+56*sc);
+
+      // 워터마크
       var w1='🌱 오늘도 시작합니다',w2='PROOF CAM v1.0 | 열박연구소';
-      cx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';var m1=cx.measureText(w1).width;
-      cx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';var m2=cx.measureText(w2).width;
+      ctx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';var m1=ctx.measureText(w1).width;
+      ctx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';var m2=ctx.measureText(w2).width;
       var ww=Math.max(m1,m2)+20*sc,wy=vh-pd-34*sc;
-      cx.fillStyle='rgba(0,0,0,.35)';rr(cx,vw-pd-ww,wy,ww,34*sc,6*sc);cx.fill();
-      cx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';cx.fillStyle='rgba(255,255,255,.55)';cx.textBaseline='top';cx.fillText(w1,vw-pd-ww+10*sc,wy+4*sc);
-      cx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';cx.fillStyle='rgba(168,213,168,.45)';cx.fillText(w2,vw-pd-ww+10*sc,wy+22*sc);
-      // REC
-      if(isRec){var el=Math.floor((Date.now()-recSt)/1000);cx.fillStyle='rgba(233,69,96,.9)';var rx=vw-pd-95*sc;rr(cx,rx,pd,95*sc,24*sc,5*sc);cx.fill();cx.fillStyle='#fff';cx.beginPath();cx.arc(rx+11*sc,pd+12*sc,4*sc,0,Math.PI*2);cx.fill();cx.font='bold '+Math.round(12*sc)+'px JetBrains Mono,monospace';cx.fillText('REC '+p2(Math.floor(el/60))+':'+p2(el%60),rx+20*sc,pd+5*sc)}
+      ctx.fillStyle='rgba(0,0,0,.35)';rr(ctx,vw-pd-ww,wy,ww,34*sc,6*sc);ctx.fill();
+      ctx.font='bold '+Math.round(14*sc)+'px Noto Sans KR,sans-serif';ctx.fillStyle='rgba(255,255,255,.55)';ctx.textBaseline='top';ctx.fillText(w1,vw-pd-ww+10*sc,wy+4*sc);
+      ctx.font=Math.round(8*sc)+'px JetBrains Mono,monospace';ctx.fillStyle='rgba(168,213,168,.45)';ctx.fillText(w2,vw-pd-ww+10*sc,wy+22*sc);
+
+      // REC 뱃지
+      if(isRec){
+        var el=Math.floor((Date.now()-recStart)/1000);
+        ctx.fillStyle='rgba(233,69,96,.9)';var rx=vw-pd-95*sc;
+        rr(ctx,rx,pd,95*sc,24*sc,5*sc);ctx.fill();
+        ctx.fillStyle='#fff';ctx.beginPath();ctx.arc(rx+11*sc,pd+12*sc,4*sc,0,Math.PI*2);ctx.fill();
+        ctx.font='bold '+Math.round(12*sc)+'px JetBrains Mono,monospace';
+        ctx.fillText('REC '+p2(Math.floor(el/60))+':'+p2(el%60),rx+20*sc,pd+5*sc);
+      }
     }
-    var n2=gT();document.getElementById('tt').textContent=fT(n2)+fM(n2);document.getElementById('td').textContent=fD(n2);
-    requestAnimationFrame(lp);
+    // HTML 오버레이 업데이트
+    var n2=now();
+    document.getElementById('tt').textContent=fmtTime(n2)+fmtMs(n2);
+    document.getElementById('td').textContent=fmtDate(n2);
+    requestAnimationFrame(loop);
   })();
 }
 
 // ============================================
-// 5. 녹화
+// 녹화
 // ============================================
 function toggleRec(){if(isRec)stopRec();else startRec()}
 
 function startRec(){
-  if(!camOk){toast('카메라를 먼저 시작하세요');return}
+  if(!camReady){toast('카메라를 먼저 시작하세요');return}
+  if(isRec){toast('이미 녹화 중');return}
+
   chunks=[];
-  var cs=cvs.captureStream(24);
-  if(stream)stream.getAudioTracks().forEach(function(t){cs.addTrack(t)});
+
+  // ★ captureStream을 15fps로 낮춤 (안정성 ↑)
+  var canvasStream=cvs.captureStream(15);
+
+  // 오디오 트랙 추가
+  if(stream){
+    var audioTracks=stream.getAudioTracks();
+    for(var i=0;i<audioTracks.length;i++){
+      canvasStream.addTrack(audioTracks[i]);
+    }
+  }
+
+  // ★ webm VP8 우선 (MP4는 모바일 Chrome에서 불안정)
   var mime='';
-  ['video/mp4','video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm'].forEach(function(m){if(!mime&&MediaRecorder.isTypeSupported(m))mime=m});
-  try{rec=new MediaRecorder(cs,mime?{mimeType:mime}:{})}catch(e){toast('녹화 실패');return}
-  rec.ondataavailable=function(e){if(e.data&&e.data.size>0)chunks.push(e.data)};
-  rec.onstop=onRecStop;
-  rec.onerror=function(){toast('녹화 오류');stopRec()};
-  rec.start(1000);isRec=true;recSt=Date.now();
-  document.getElementById('rb').classList.add('on');document.getElementById('ri').classList.add('on');
+  var tryList=['video/webm;codecs=vp8,opus','video/webm;codecs=vp8','video/webm'];
+  for(var j=0;j<tryList.length;j++){
+    if(MediaRecorder.isTypeSupported(tryList[j])){mime=tryList[j];break}
+  }
+
+  try{
+    recorder=new MediaRecorder(canvasStream, mime?{mimeType:mime}:{});
+  }catch(e){
+    toast('녹화 시작 실패',2000);return;
+  }
+
+  recorder.ondataavailable=function(e){
+    if(e.data && e.data.size>0) chunks.push(e.data);
+  };
+
+  recorder.onstop=function(){
+    var duration=Date.now()-recStart;
+    if(duration<2000){toast('⚠ 2초 이상 녹화해주세요',2500);return}
+    if(chunks.length===0){toast('녹화 데이터 없음',2000);return}
+
+    var rawBlob=new Blob(chunks,{type:mime||'video/webm'});
+    if(rawBlob.size<1000){toast('녹화 파일이 너무 작습니다',2000);return}
+
+    // ★ webm duration 메타데이터 수정 (카톡 호환)
+    fixWebmDuration(rawBlob, duration).then(function(fixedBlob){
+      savedBlob=fixedBlob;
+      var n=now();
+      savedName='PROOF_'+n.getFullYear()+p2(n.getMonth()+1)+p2(n.getDate())+'_'+p2(n.getHours())+p2(n.getMinutes())+p2(n.getSeconds())+'.webm';
+      document.getElementById('svb').classList.add('rdy');
+      showSave();
+    });
+  };
+
+  recorder.onerror=function(e){
+    toast('녹화 오류: '+(e.error?e.error.message:''),2500);
+    cleanupRec();
+  };
+
+  // ★ 2초 간격으로 데이터 수집 (안정적)
+  recorder.start(2000);
+  isRec=true;
+  recStart=Date.now();
+  document.getElementById('rb').classList.add('on');
+  document.getElementById('ri').classList.add('on');
   toast('🔴 녹화 시작',1000);
-  recTi=setInterval(function(){var s=Math.floor((Date.now()-recSt)/1000);document.getElementById('rm').textContent=p2(Math.floor(s/60))+':'+p2(s%60)},250);
+
+  recTimer=setInterval(function(){
+    var s=Math.floor((Date.now()-recStart)/1000);
+    document.getElementById('rm').textContent=p2(Math.floor(s/60))+':'+p2(s%60);
+  },250);
 }
 
 function stopRec(){
-  if(rec&&rec.state!=='inactive')try{rec.stop()}catch(e){}
-  isRec=false;document.getElementById('rb').classList.remove('on');document.getElementById('ri').classList.remove('on');
-  if(recTi)clearInterval(recTi);document.getElementById('rm').textContent='00:00';
+  if(recorder && recorder.state==='recording'){
+    // ★ 마지막 데이터 강제 수집 후 정지
+    try{recorder.requestData()}catch(e){}
+    // 약간 대기 후 stop (마지막 청크 수신 보장)
+    setTimeout(function(){
+      try{recorder.stop()}catch(e){}
+      cleanupRec();
+    },500);
+  }else{
+    cleanupRec();
+  }
 }
 
-function onRecStop(){
-  var dur=Date.now()-recSt;
-  if(dur<2000){toast('⚠ 2초 이상 녹화해주세요',2500);blob=null;return}
-  if(!chunks.length){toast('녹화 데이터 없음',2000);blob=null;return}
-  var mime=(rec&&rec.mimeType)?rec.mimeType:'video/webm';
-  blob=new Blob(chunks,{type:mime});
-  if(blob.size<500){toast('녹화 파일이 비어있습니다',2000);blob=null;return}
-  var ext=mime.indexOf('mp4')>=0?'mp4':'webm';
-  var n=gT();fname='PROOF_'+n.getFullYear()+p2(n.getMonth()+1)+p2(n.getDate())+'_'+p2(n.getHours())+p2(n.getMinutes())+p2(n.getSeconds())+'.'+ext;
-  document.getElementById('svb').classList.add('rdy');
-  showSave();
+function cleanupRec(){
+  isRec=false;
+  document.getElementById('rb').classList.remove('on');
+  document.getElementById('ri').classList.remove('on');
+  if(recTimer)clearInterval(recTimer);
+  document.getElementById('rm').textContent='00:00';
 }
 
 // ============================================
-// 6. 저장 (심플하게 하나만)
+// ★ WebM Duration 수정 (핵심 수정)
+// Chrome MediaRecorder는 webm에 duration을 안 씀
+// 이걸 수정하지 않으면 카톡/갤러리에서 재생 길이가 이상해짐
+// ============================================
+function fixWebmDuration(blob, durationMs){
+  return new Promise(function(resolve){
+    var fr=new FileReader();
+    fr.onload=function(){
+      try{
+        var buf=new Uint8Array(fr.result);
+        var durationSec=durationMs; // webm duration은 밀리초 단위
+
+        // EBML에서 Duration 엘리먼트(0x4489) 검색 (처음 1000바이트 내)
+        var limit=Math.min(buf.length,1000);
+        for(var i=0;i<limit-1;i++){
+          if(buf[i]===0x44 && buf[i+1]===0x89){
+            // 다음 바이트: EBML 크기 (보통 0x88 = 8바이트)
+            if(buf[i+2]===0x88){
+              // float64로 duration 쓰기
+              var dv=new DataView(buf.buffer, i+3, 8);
+              dv.setFloat64(0, durationSec, false); // big-endian
+              resolve(new Blob([buf],{type:blob.type}));
+              return;
+            }
+            // 다른 크기 인코딩인 경우 (4바이트: 0x84)
+            if(buf[i+2]===0x84){
+              var dv2=new DataView(buf.buffer, i+3, 4);
+              dv2.setFloat32(0, durationSec, false);
+              resolve(new Blob([buf],{type:blob.type}));
+              return;
+            }
+          }
+        }
+        // Duration 엘리먼트 못 찾으면 원본 반환
+        resolve(blob);
+      }catch(e){
+        resolve(blob); // 에러 시 원본 반환
+      }
+    };
+    fr.onerror=function(){resolve(blob)};
+    fr.readAsArrayBuffer(blob);
+  });
+}
+
+// ============================================
+// 저장
 // ============================================
 function showSave(){
-  if(!blob){toast('녹화된 영상 없음');return}
-  if(burl)URL.revokeObjectURL(burl);
-  burl=URL.createObjectURL(blob);
-  document.getElementById('pv').src=burl;
-  var dur=Math.max(1,Math.round((Date.now()-recSt)/1000));
-  document.getElementById('mi').textContent=fname+' | '+fS(blob.size)+' | '+p2(Math.floor(dur/60))+':'+p2(dur%60);
-  var isMP4=fname.indexOf('.mp4')>=0;
-  document.getElementById('mn').textContent=isMP4?'📱 MP4 형식 — 갤러리에 바로 표시됩니다':'📂 WEBM 형식 — 내 파일 → Download에서 확인';
+  if(!savedBlob){toast('녹화된 영상 없음');return}
+  if(blobUrl)URL.revokeObjectURL(blobUrl);
+  blobUrl=URL.createObjectURL(savedBlob);
+  document.getElementById('pv').src=blobUrl;
+  var dur=Math.max(1,Math.round((Date.now()-recStart)/1000));
+  document.getElementById('mi').textContent=savedName+' | '+fmtSize(savedBlob.size)+' | '+p2(Math.floor(dur/60))+':'+p2(dur%60);
+  document.getElementById('mn').textContent='📂 저장 후 내 파일 → Download에서 확인';
   document.getElementById('mbg').classList.add('show');
 }
 
 function saveVideo(){
-  if(!blob){toast('저장할 영상 없음');return}
-  if(!burl) burl=URL.createObjectURL(blob);
+  if(!savedBlob){toast('저장할 영상 없음');return}
+  if(!blobUrl)blobUrl=URL.createObjectURL(savedBlob);
 
-  // 방법: <a> 태그를 동적 생성, 화면 밖에 배치 (display:none 아님!)
-  var a = document.createElement('a');
-  a.href = burl;
-  a.download = fname;
-  // display:none 대신 화면 밖으로 (모바일 크롬 호환)
-  a.style.cssText = 'position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0.01';
+  var a=document.createElement('a');
+  a.href=blobUrl;
+  a.download=savedName;
+  a.style.cssText='position:fixed;top:-100px;left:-100px;width:1px;height:1px;opacity:0.01';
   document.body.appendChild(a);
-
-  // 클릭 이벤트 직접 발생
-  try {
-    var evt = new MouseEvent('click', {bubbles:true, cancelable:true, view:window});
-    a.dispatchEvent(evt);
-  } catch(e) {
-    // 구형 브라우저 폴백
-    a.click();
-  }
-
+  var evt=new MouseEvent('click',{bubbles:true,cancelable:true,view:window});
+  a.dispatchEvent(evt);
   toast('📥 저장 중...\n상단 알림바에서 확인하세요',4000);
   document.getElementById('mbg').classList.remove('show');
-
-  // 3초 후 정리 (너무 빨리 제거하면 다운로드 취소됨)
-  setTimeout(function(){
-    try{document.body.removeChild(a)}catch(e){}
-  },5000);
+  setTimeout(function(){try{document.body.removeChild(a)}catch(e){}},5000);
 }
 
+// ============================================
+// 카메라 전환
+// ============================================
 function flipCam(){
   if(isRec){toast('녹화 중 전환 불가');return}
-  face=face==='environment'?'user':'environment';
-  toast(face==='user'?'📱 전면':'📸 후면',800);
-  camOk=false;rendering=false;startApp();
+  facing=facing==='environment'?'user':'environment';
+  toast(facing==='user'?'📱 전면':'📸 후면',800);
+  camReady=false;rendering=false;startApp();
 }
 
-setInterval(syncNTP,300000);
+// 5분마다 NTP 재동기화
+setInterval(function(){if(camReady)syncNTP()},300000);
 </script>
 </body>
 </html>
